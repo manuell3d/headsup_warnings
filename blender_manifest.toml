@@ -1,4 +1,4 @@
-schema_version = "1.0.1"
+schema_version = "1.0.0"
 
 id = "headsup_warnings"
 version = "1.0.1"
