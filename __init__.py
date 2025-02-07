@@ -3235,6 +3235,7 @@ def headsup_check_warnings(scene, depsgraph):
                     continue
                 if image.filepath: 
                     abs_path = bpy.path.abspath(image.filepath)
+                    abs_path = abs_path.replace("<UDIM>", "1001")
                     if not os.path.exists(abs_path):
                         new_warnings.append(f"[Missing Textures] found")
                         props.warn_info_42 = True
