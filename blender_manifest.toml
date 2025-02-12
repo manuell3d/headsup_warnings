@@ -1,0 +1,19 @@
+schema_version = "1.0.0"
+
+id = "headsup_warnings"
+version = "1.0.2"
+name = "HeadsUp Warnings"
+tagline = "Display UI warnings to avoid and resolve common mistakes"
+maintainer = "Manuel Lüllau"
+type = "add-on"
+
+tags = ["3D View", "Compositing", "Render"]
+
+blender_version_min = "4.2.0"
+
+license = [
+  "SPDX:GPL-3.0-or-later",
+]
+
+[permissions]
+files = "Check filepaths to validate if Textures are missing"
