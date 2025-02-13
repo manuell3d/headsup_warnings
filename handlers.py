@@ -9,6 +9,7 @@ from math import cos, sin, pi
 from .utils import *
 from .preferences import *
 from .properties import *
+from .properties import HEADSUP_Props
 
 #Current Warn List:
 #    1 Lock Camera to View
@@ -58,13 +59,11 @@ from .properties import *
 #    45 Compositing: Renderlayer Node Issues
 
 def check_startup_time():
-    global startup_done
-
     # Check if 1 second has passed since Blender started
     if time.time() - bpy.app.timers._startup_time > 2:
         draw_warning_text()
         # Set the variable to indicate that the check is done
-        startup_done = True
+        HEADSUP_Props.startup_done = True
         bpy.context.window_manager.update_tag()
         print("HeadsUp: Startup Done")
         
@@ -81,7 +80,7 @@ def draw_warning_text():
     y_position = 10
     header_bottom = False
 
-    if warn_state:
+    if HEADSUP_Props.warn_state:
         # Starting positions for text warnings, starting from lower left corner 
         for area in bpy.context.screen.areas:
             if area.type == 'VIEW_3D':
@@ -112,15 +111,15 @@ def draw_warning_text():
             y_position = y_position + 25 * bpy.context.preferences.view.ui_scale
         
         
-        warning_message = " , ".join(warnings) if warnings else ""
-        warning_message_full = f"HeadsUp: {warning_message}"
+        HEADSUP_Props.warning_message = " , ".join(HEADSUP_Props.warnings) if HEADSUP_Props.warnings else ""
+        warning_message_full = f"HeadsUp: {HEADSUP_Props.warning_message}"
         
         # For viewport specific options, remove the warning text if it does not apply.
         if bpy.context.space_data is not None and bpy.context.space_data.type == 'VIEW_3D':
             area_identifier = hash(bpy.context.space_data)
-            clean_warnings = clean_viewport_warnings(warnings, area_identifier)
-            warning_message = " , ".join(clean_warnings[0]) if clean_warnings else ""
-            warning_message_full = f"HeadsUp: {warning_message}"
+            clean_warnings = clean_viewport_warnings(HEADSUP_Props.warnings, area_identifier)
+            HEADSUP_Props.warning_message = " , ".join(clean_warnings[0]) if clean_warnings else ""
+            warning_message_full = f"HeadsUp: {HEADSUP_Props.warning_message}"
             if clean_warnings[1] and prefs.viewport_highlighting and prefs.toggle_with_overlays and not bpy.context.space_data.overlay.show_overlays:
                 draw_highlight_border(8)
             
@@ -137,15 +136,15 @@ def draw_warning_text():
         current_word = ""
     
         # Calculate and set text size
-        actual_text_size = calculate_text_size(prefs)
-        if blender_version >= (4, 0, 0):
-            blf.size(0, actual_text_size)
+        HEADSUP_Props.actual_text_size = calculate_text_size(prefs)
+        if bpy.app.version >= (4, 0, 0):
+            blf.size(0, HEADSUP_Props.actual_text_size)
         else: 
-            blf.size(0, actual_text_size, bpy.context.preferences.system.dpi)
+            blf.size(0, HEADSUP_Props.actual_text_size, bpy.context.preferences.system.dpi)
 
         # Enable shadow
         blf.enable(0, blf.SHADOW)
-        if blender_version >= (4,0,0):
+        if bpy.app.version >= (4,0,0):
             blf.shadow_offset(0, 0, 0)  # Offset shadow
             blf.shadow(0, 6, 0.0, 0.0, 0.0, 0.8)
         else:
@@ -206,7 +205,7 @@ def draw_warning_text():
                 draw_filled_red_circle()   
        
         # "Fullscreen" Version warning in the center of the 3D View
-        if prefs.warn_44_a and not saved_just_now:
+        if prefs.warn_44_a and not HEADSUP_Props.saved_just_now:
             if bpy.data.filepath != '':
                 current_version = bpy.app.version_file[:2]
                 file_version = bpy.data.version[:2]
@@ -263,23 +262,23 @@ def draw_warning_text_comp():
     x_position = 10
     y_position = 10
 
-    if warn_state and prefs.compositor_warnings:
+    if HEADSUP_Props.warn_state and prefs.compositor_warnings:
         # Starting positions for text warnings, starting from lower left corner 
         for area in bpy.context.screen.areas:
             if area.type == 'NODE_EDITOR':
                 x_position = 10
                 y_position = 10  
 
-        warning_message = " , ".join(warnings) if warnings else ""
-        warning_message_full = f"HeadsUp: {warning_message}"
+        HEADSUP_Props.warning_message = " , ".join(HEADSUP_Props.warnings) if HEADSUP_Props.warnings else ""
+        warning_message_full = f"HeadsUp: {HEADSUP_Props.warning_message}"
         
         # For viewport specific options, remove the warning text if it does not apply.
         if bpy.context.space_data is not None and bpy.context.space_data.type == 'NODE_EDITOR':
             if bpy.context.space_data.tree_type == 'CompositorNodeTree':
                 area_identifier = hash(bpy.context.space_data)
-                clean_warnings = clean_viewport_warnings(warnings, area_identifier)
-                warning_message = " , ".join(clean_warnings[0]) if clean_warnings else ""
-                warning_message_full = f"HeadsUp: {warning_message}"
+                clean_warnings = clean_viewport_warnings(HEADSUP_Props.warnings, area_identifier)
+                HEADSUP_Props.warning_message = " , ".join(clean_warnings[0]) if clean_warnings else ""
+                warning_message_full = f"HeadsUp: {HEADSUP_Props.warning_message}"
                 
                 prev_message = warning_message_full
                 warning_message_full = re.sub(r"^\s*HeadsUp:\s*$", "", prev_message)
@@ -295,16 +294,16 @@ def draw_warning_text_comp():
         current_word = ""
 
         # Calculate and set text size
-        actual_text_size = calculate_text_size(prefs)
-        if blender_version >= (4, 0, 0):
-            blf.size(0, actual_text_size)
+        HEADSUP_Props.actual_text_size = calculate_text_size(prefs)
+        if bpy.app.version >= (4, 0, 0):
+            blf.size(0, HEADSUP_Props.actual_text_size)
         else: 
-            blf.size(0, actual_text_size, bpy.context.preferences.system.dpi)
+            blf.size(0, HEADSUP_Props.actual_text_size, bpy.context.preferences.system.dpi)
 
 
         # Enable shadow
         blf.enable(0, blf.SHADOW)
-        if blender_version >= (4,0,0):
+        if bpy.app.version >= (4,0,0):
             blf.shadow_offset(0, 0, 0)  # Offset shadow
             blf.shadow(0, 6, 0.0, 0.0, 0.0, 0.8)
         else:
@@ -358,7 +357,7 @@ def draw_warning_text_comp():
             blf.draw(0, current_word)
 
         # "Fullscreen" Version warning in the center of the Compositor
-        if prefs.warn_44_a and not saved_just_now:
+        if prefs.warn_44_a and not HEADSUP_Props.saved_just_now:
             if bpy.data.filepath != '':
                 current_version = bpy.app.version_file[:2]
                 file_version = bpy.data.version[:2]
@@ -412,23 +411,20 @@ def draw_warning_text_comp():
 
 @persistent
 def on_file_load(dummy):
-    global load_up_done, collection_check_bool, saved_just_now
     # Reset the flag on file load
-    load_up_done = False
-    collection_check_bool = True
-    saved_just_now = False
+    HEADSUP_Props.load_up_done = False
+    HEADSUP_Props.collection_check_bool = True
+    HEADSUP_Props.saved_just_now = False
 
 @persistent
 def on_file_save(dummy):
-    global saved_just_now, load_up_done
-    saved_just_now = True
-    load_up_done = False
+    HEADSUP_Props.saved_just_now = True
+    HEADSUP_Props.load_up_done = False
 
 @persistent
 def warning(warn):
     """Change editor outline color based on warning state."""
-    global warn_state
-    warn_state = warn
+    HEADSUP_Props.warn_state = warn
     theme = bpy.context.preferences.themes[0]
     prefs = bpy.context.preferences.addons[__package__].preferences
     
@@ -438,12 +434,12 @@ def warning(warn):
         
     else:    
         if warn and not prefs.UI_color_change_bool:
-            if blender_version >= (4, 3, 0):
+            if bpy.app.version >= (4, 3, 0):
                 theme.user_interface.editor_border = prefs.warn_color
             else:
                 theme.user_interface.editor_outline = prefs.warn_color
         else: 
-            if blender_version >= (4, 3, 0):
+            if bpy.app.version >= (4, 3, 0):
                 theme.user_interface.editor_border = prefs.original_theme_color
             else:
                 theme.user_interface.editor_outline = prefs.original_theme_color
@@ -451,23 +447,19 @@ def warning(warn):
 @persistent
 def headsup_check_warnings(scene, depsgraph):
     """Check auto keyframe settings and warn if necessary."""
-    global warnings, mismatch_list, old_warnings, collection_mismatches, object_mismatches, viewlayer_count
-    global modifier_mismatches, undefined_nodes, load_up_done, problematic_materials, problematic_objects
-    global collection_check_bool, view_layer_visibilities, compositor_check_bool, current_scene, old_warn_state
         
     scene = bpy.context.scene
-    if blender_version >= (4, 2):
+    if bpy.app.version >= (4, 2):
         if len(bpy.context.window.modal_operators) > 0:
-            if load_up_done:
-                load_up_done = False
+            if HEADSUP_Props.load_up_done:
+                HEADSUP_Props.load_up_done = False
             return
 
     if bpy.context.screen and bpy.context.screen.is_animation_playing:
-        if load_up_done:
-            load_up_done = False
+        if HEADSUP_Props.load_up_done:
+            HEADSUP_Props.load_up_done = False
         return
 
-    mismatch_list = []
     new_warnings = []
     active_obj = bpy.context.active_object
     prefs = bpy.context.preferences.addons[__package__].preferences
@@ -480,21 +472,21 @@ def headsup_check_warnings(scene, depsgraph):
 
     for view_layer in bpy.context.scene.view_layers:
         current_state = view_layer.use
-        previous_state = view_layer_visibilities.get(view_layer.name, None)
+        previous_state = HEADSUP_Props.view_layer_visibilities.get(view_layer.name, None)
         
         # Compare with the stored state
         if previous_state is None:
-            view_layer_visibilities[view_layer.name] = current_state
+            HEADSUP_Props.view_layer_visibilities[view_layer.name] = current_state
         elif current_state != previous_state:
-            load_up_done = False
-            view_layer_visibilities[view_layer.name] = current_state
+            HEADSUP_Props.load_up_done = False
+            HEADSUP_Props.view_layer_visibilities[view_layer.name] = current_state
 
     # Do a full check after loading a blender file, otherwise only check relevant updates and known problematic items
-    if current_scene is None or bpy.context.scene != current_scene:
-        load_up_done = False
-        current_scene = bpy.context.scene
+    if HEADSUP_Props.current_scene is None or bpy.context.scene != HEADSUP_Props.current_scene:
+        HEADSUP_Props.load_up_done = False
+        HEADSUP_Props.current_scene = bpy.context.scene
 
-    if load_up_done == False:
+    if HEADSUP_Props.load_up_done == False:
         check_objects = set()
         check_materials = set()        
 
@@ -503,17 +495,17 @@ def headsup_check_warnings(scene, depsgraph):
         for mat in bpy.data.materials:
             if not mat.library:
                 check_materials.add(mat)
-        collection_check_bool = True
-        compositor_check_bool = True
+        HEADSUP_Props.collection_check_bool = True
+        HEADSUP_Props.compositor_check_bool = True
         update_visible_collections()
     else: 
         check_objects = set()
         check_materials = set()        
 
-        for obj in problematic_objects:
+        for obj in HEADSUP_Props.problematic_objects:
             check_objects.add(obj)
         
-        for mat in problematic_materials:
+        for mat in HEADSUP_Props.problematic_materials:
             check_materials.add(mat)
         if depsgraph is not None:
             for update in depsgraph.updates:
@@ -524,19 +516,19 @@ def headsup_check_warnings(scene, depsgraph):
                     obj = update.id
                     check_objects.add(obj)
                 if isinstance(update.id, bpy.types.Collection):
-                    collection_check_bool = True
+                    HEADSUP_Props.collection_check_bool = True
                     update_visible_collections()
                     for obj in bpy.context.scene.objects:
                         check_objects.add(obj)
                 if isinstance(update.id, bpy.types.CompositorNodeTree):
-                    compositor_check_bool = True
-        if viewlayer_count != len(bpy.context.scene.view_layers):
-            viewlayer_count = len(bpy.context.scene.view_layers)
-            compositor_check_bool = True
+                    HEADSUP_Props.compositor_check_bool = True
+        if HEADSUP_Props.viewlayer_count != len(bpy.context.scene.view_layers):
+            HEADSUP_Props.viewlayer_count = len(bpy.context.scene.view_layers)
+            HEADSUP_Props.compositor_check_bool = True
             
         # Problematic items have been added to the check-lists, if they are still problematic, they'll be added again
-        problematic_materials = set()
-        problematic_objects = set()
+        HEADSUP_Props.problematic_materials = set()
+        HEADSUP_Props.problematic_objects = set()
 
     try:
         if prefs.warn_1:
@@ -554,22 +546,22 @@ def headsup_check_warnings(scene, depsgraph):
 
         if prefs.warn_2:
             if len(check_objects) > 0:
-                object_mismatches = check_object_mismatches(check_objects)
-            if collection_check_bool:
-                collection_mismatches = check_collection_mismatches()                
+                HEADSUP_Props.object_mismatches = check_object_mismatches(check_objects)
+            if HEADSUP_Props.collection_check_bool:
+                HEADSUP_Props.collection_mismatches = check_collection_mismatches()                
 
-            if len(collection_mismatches) > 0 and len(object_mismatches) == 0:
+            if len(HEADSUP_Props.collection_mismatches) > 0 and len(HEADSUP_Props.object_mismatches) == 0:
                new_warnings.append(f"[Collection Render/Viewport Mismatch] check HeadsUp SidePanel")
                props.warn_info_2 = True
-            if len(object_mismatches) > 0 and len(collection_mismatches) == 0:
+            if len(HEADSUP_Props.object_mismatches) > 0 and len(HEADSUP_Props.collection_mismatches) == 0:
                new_warnings.append(f"[Object Render/Viewport Mismatch] check HeadsUp SidePanel")
                props.warn_info_2 = True
-            if len(object_mismatches) > 0 and len(collection_mismatches) > 0:
+            if len(HEADSUP_Props.object_mismatches) > 0 and len(HEADSUP_Props.collection_mismatches) > 0:
                new_warnings.append(f"[Object & Collection Render/Viewport Mismatches] check HeadsUp SidePanel")
                props.warn_info_2 = True
 
-            if len(collection_mismatches) == 0:
-                collection_check_bool = False
+            if len(HEADSUP_Props.collection_mismatches) == 0:
+                HEADSUP_Props.collection_check_bool = False
 
         if prefs.warn_3:
             if active_obj and active_obj.type == 'MESH':
@@ -844,8 +836,8 @@ def headsup_check_warnings(scene, depsgraph):
                             new_warnings.append(f"[Modifier Visibility Mismatch] for [{modifier_string}]")
                             props.warn_info_25=True
                 else:
-                    modifier_mismatches = check_modifier_mismatches(check_objects)
-                    if len(modifier_mismatches) > 0:
+                    HEADSUP_Props.modifier_mismatches = check_modifier_mismatches(check_objects)
+                    if len(HEADSUP_Props.modifier_mismatches) > 0:
                         new_warnings.append(f"[Modifier Render/Viewport Mismatch] check HeadsUp SidePanel")
                         props.warn_info_25=True
 
@@ -1117,15 +1109,15 @@ def headsup_check_warnings(scene, depsgraph):
                                 props.warn_info_40 = True
 
         if prefs.warn_41:
-            undefined_nodes = []
+            HEADSUP_Props.undefined_nodes = []
             for material in check_materials:
                 if material.users == 0 or not material.use_nodes or material.library:
                     continue
                 for node in material.node_tree.nodes:
                     if "undefined" in node.bl_idname.lower():
-                        undefined_nodes.append(material.name)
-                        problematic_materials.add(material)
-            if undefined_nodes and bpy.context.mode == 'OBJECT':
+                        HEADSUP_Props.undefined_nodes.append(material.name)
+                        HEADSUP_Props.problematic_materials.add(material)
+            if HEADSUP_Props.undefined_nodes and bpy.context.mode == 'OBJECT':
                 new_warnings.append(f"[Undefined Nodes found] check HeadsUp SidePanel")
                 props.warn_info_41 = True
 
@@ -1153,21 +1145,21 @@ def headsup_check_warnings(scene, depsgraph):
                 props.warn_info_43 = True
 
         if prefs.warn_44:
-            if not saved_just_now:
+            if not HEADSUP_Props.saved_just_now:
                 if bpy.app.version_file[:2] != bpy.data.version[:2]:
                     if not bpy.data.filepath == '':
                         new_warnings.append(f"[Blender Version] File was last saved with Blender {bpy.data.version[0]}.{bpy.data.version[1]}!")
                         props.warn_info_44 = True
 
         if prefs.warn_45:
-            if compositor_check_bool:
+            if HEADSUP_Props.compositor_check_bool:
                 compositor_warnings = check_renderlayer_compositing_conditions()
                 if compositor_warnings:
                     new_warnings.append(f"[Compositor]: {', '.join(set(compositor_warnings))}")
                     props.warn_info_45 = True
-                    compositor_check_bool = True
+                    HEADSUP_Props.compositor_check_bool = True
                 else:
-                    compositor_check_bool = False
+                    HEADSUP_Props.compositor_check_bool = False
 
         if prefs.custom_warn:
             for text_block in bpy.data.texts:
@@ -1178,27 +1170,186 @@ def headsup_check_warnings(scene, depsgraph):
                         new_warnings.append(f"[CUSTOM] {message}")
                         props.warn_info_custom = True
         
-        if new_warnings != warnings:
-            warnings = new_warnings
-        warn_state = bool(warnings)
-        if old_warn_state != warn_state:
-            warning(warn_state)
-            old_warn_state = warn_state 
-        if not load_up_done:
-            warnings = new_warnings
-            warn_state = bool(warnings)
-            warning(warn_state)
-            old_warn_state = warn_state
-            load_up_done = True
-        if not startup_done:
-            warnings = new_warnings
-            warn_state = bool(warnings)
-            warning(warn_state)
-            old_warn_state = warn_state
+        if new_warnings != HEADSUP_Props.warnings:
+            HEADSUP_Props.warnings = new_warnings
+        HEADSUP_Props.warn_state = bool(HEADSUP_Props.warnings)
+        if HEADSUP_Props.old_warn_state != HEADSUP_Props.warn_state:
+            warning(HEADSUP_Props.warn_state)
+            HEADSUP_Props.old_warn_state = HEADSUP_Props.warn_state 
+        if not HEADSUP_Props.load_up_done:
+            HEADSUP_Props.warnings = new_warnings
+            HEADSUP_Props.warn_state = bool(HEADSUP_Props.warnings)
+            warning(HEADSUP_Props.warn_state)
+            HEADSUP_Props.old_warn_state = HEADSUP_Props.warn_state
+            HEADSUP_Props.load_up_done = True
+        if not HEADSUP_Props.startup_done:
+            HEADSUP_Props.warnings = new_warnings
+            HEADSUP_Props.warn_state = bool(HEADSUP_Props.warnings)
+            warning(HEADSUP_Props.warn_state)
+            HEADSUP_Props.old_warn_state = HEADSUP_Props.warn_state
 
     except Exception as e:
         print(f"HeadsUp Error: {e}")
         
+def check_object_mismatches(check_objects):
+    """Find objects with mismatched hide_render and hide_viewport statuses."""
+    SKIPPED_TYPES = {'CAMERA', 'IMAGE', 'LATTICE', 'ARMATURE', 'SPEAKER', 'FORCE_FIELD'}
+
+    object_view_layer_map = {}
+
+    for obj in check_objects:
+        if not obj or obj.type in SKIPPED_TYPES:
+            continue
+
+        # Initialize the object in the map
+        object_view_layer_map[obj] = []
+
+        # Find collection names the object belongs to
+        obj_collection_names = {coll.name for coll in obj.users_collection}
+
+        # Check if these collection names appear in the view_layer_visible_collections
+        for layer_name, visible_collections in HEADSUP_Props.view_layer_visible_collections.items():
+            if obj_collection_names.intersection(visible_collections):
+                # If the object has a mismatch, add it to the map and problematic_objects
+                if obj.hide_render != obj.hide_viewport:
+                    object_view_layer_map[obj].append(layer_name)
+                    HEADSUP_Props.problematic_objects.add(obj)
+
+    # Build mismatch list
+    mismatch_list = [
+        {"object": obj, "view_layers": view_layers}
+        for obj, view_layers in object_view_layer_map.items()
+        if view_layers
+    ]
+
+    return mismatch_list
+
+def check_modifier_mismatches(check_objects):
+    """Find objects with mismatched modifier visibility (show_viewport vs show_render)."""
+    CHECKED_TYPES = {'MESH', 'CURVE', 'LATTICE', 'FONT', 'GPENCIL'}
+
+    mismatch_dict = {}
+
+    for obj in check_objects:
+        if not obj or obj.type not in CHECKED_TYPES:
+            continue
+
+        # Skip objects fully hidden
+        if obj.hide_viewport and obj.hide_render:
+            continue
+
+        # Check for mismatched modifiers
+        modifier_mismatch = any(
+            modifier.show_viewport != modifier.show_render for modifier in obj.modifiers
+        )
+
+        if modifier_mismatch:
+            if obj not in mismatch_dict:
+                mismatch_dict[obj] = []
+
+            # Get the collections the object belongs to
+            obj_collection_names = {coll.name for coll in obj.users_collection}
+
+            # Check if these collections intersect with visible collections for any view layer
+            for layer_name, visible_collections in HEADSUP_Props.view_layer_visible_collections.items():
+                if obj_collection_names.intersection(visible_collections):
+                    mismatch_dict[obj].append(layer_name)
+                    HEADSUP_Props.problematic_objects.add(obj)
+
+    mismatch_list = [
+        {"object": obj, "view_layers": view_layers}
+        for obj, view_layers in mismatch_dict.items()
+        if view_layers
+    ]
+    return mismatch_list
+
+def check_collection_mismatches():
+    """Find collections with mismatched hide_render and hide_viewport attributes."""
+    mismatch_dict = {}
+
+    def check_layer_collection(layer_coll, view_layer_name):
+        """Recursively check layer collections for mismatches."""
+        collection = layer_coll.collection
+
+        # Skip collection if it is excluded (this applies to the collection itself)
+        if layer_coll.exclude:
+            # Only skip the current collection, but still check its children
+            pass
+        else:
+            # Determine visibility based on hide_render (should it be visible in the renderer?)
+            collection_visible = not collection.hide_render
+
+            # Check for mismatches between hide_render and hide_viewport
+            if collection.hide_render != collection.hide_viewport:
+                if collection.name not in mismatch_dict:
+                    mismatch_dict[collection.name] = []
+                mismatch_dict[collection.name].append(view_layer_name)
+
+        # Recursively check child collections, regardless of the parent's exclusion (unless the child is excluded)
+        for child_layer_coll in layer_coll.children:
+            check_layer_collection(
+                child_layer_coll,
+                view_layer_name=view_layer_name
+            )
+
+    # Iterate through all view layers
+    for layer in bpy.context.scene.view_layers:
+        check_layer_collection(
+            layer.layer_collection,
+            view_layer_name=layer.name
+        )
+
+    # Convert the dictionary to a list of mismatches
+    mismatch_list = [{"collection_name": coll_name, "view_layers": view_layers}
+                     for coll_name, view_layers in mismatch_dict.items()]
+    return mismatch_list
+
+def update_visible_collections():
+    HEADSUP_Props.view_layer_visible_collections = {}
+
+    for layer in bpy.context.scene.view_layers:
+        visible_collections = set()  # Use a set to avoid duplicates
+        if not layer.use:
+            continue
+        def check_layer_collection(layer_coll):
+            # Skip checking this collection and its children if it is hidden in render
+            if layer_coll.collection.hide_render:
+                return
+
+            # Add the collection name if it is not excluded
+            if not layer_coll.exclude:
+                visible_collections.add(layer_coll.collection.name)
+
+            # Recursively check child collections
+            for child in layer_coll.children:
+                check_layer_collection(child)
+
+        # Start checking from the root layer collection
+        check_layer_collection(layer.layer_collection)
+        # Map the layer name to the list of visible collection names
+        HEADSUP_Props.view_layer_visible_collections[layer.name] = list(visible_collections)
+
+def on_any_collection_or_layer_change():
+    """Callback when any collection or layer property changes."""
+    HEADSUP_Props.collection_check_bool = True
+    HEADSUP_Props.compositor_check_bool = True
+    update_visible_collections()
+    for obj in bpy.context.scene.objects:
+        HEADSUP_Props.problematic_objects.add(obj)
+
+def compositor_callback():
+    HEADSUP_Props.compositor_check_bool = True
+
+def on_material_change():
+    for mat in bpy.data.materials:
+        if not mat.library:
+            HEADSUP_Props.problematic_materials.add(mat)
+
+def on_obj_visibility_change():
+    """Callback when any collection or layer property changes."""
+    for obj in bpy.context.scene.objects:
+        HEADSUP_Props.problematic_objects.add(obj)
+
 def subscribe_to_global_visibility_and_exclusion():
     """Subscribe globally to visibility and exclusion property changes."""
     # Subscribe to Collection visibility properties
@@ -1272,27 +1423,23 @@ def subscribe_to_global_visibility_and_exclusion():
     )
 
 def register_draw_handler():
-    global handler, handler_comp, handler_gradient
-    if handler_gradient is None:
-        handler_gradient = bpy.types.SpaceView3D.draw_handler_add(draw_circular_gradient, (), 'WINDOW', 'POST_PIXEL')
-    if handler is None:
-        handler = bpy.types.SpaceView3D.draw_handler_add(draw_warning_text, (), 'WINDOW', 'POST_PIXEL')
-    if handler_comp is None:
-        handler_comp = bpy.types.SpaceNodeEditor.draw_handler_add(draw_warning_text_comp, (), 'WINDOW', 'POST_PIXEL')
+    if HEADSUP_Props.handler_gradient is None:
+        HEADSUP_Props.handler_gradient = bpy.types.SpaceView3D.draw_handler_add(draw_circular_gradient, (), 'WINDOW', 'POST_PIXEL')
+    if HEADSUP_Props.handler is None:
+        HEADSUP_Props.handler = bpy.types.SpaceView3D.draw_handler_add(draw_warning_text, (), 'WINDOW', 'POST_PIXEL')
+    if HEADSUP_Props.handler_comp is None:
+        HEADSUP_Props.handler_comp = bpy.types.SpaceNodeEditor.draw_handler_add(draw_warning_text_comp, (), 'WINDOW', 'POST_PIXEL')
 
 def unregister_draw_handler():
-    global handler, handler_comp, handler_gradient
-    if handler_gradient is not None:
-        bpy.types.SpaceView3D.draw_handler_remove(handler_gradient, 'WINDOW')
-        handler_gradient = None 
-    if handler is not None:
-        bpy.types.SpaceView3D.draw_handler_remove(handler, 'WINDOW')
-        handler = None 
-    if handler_comp is not None:
-        bpy.types.SpaceNodeEditor.draw_handler_remove(handler_comp, 'WINDOW')
-        handler_comp = None
-
-
+    if HEADSUP_Props.handler_gradient is not None:
+        bpy.types.SpaceView3D.draw_handler_remove(HEADSUP_Props.handler_gradient, 'WINDOW')
+        HEADSUP_Props.handler_gradient = None 
+    if HEADSUP_Props.handler is not None:
+        bpy.types.SpaceView3D.draw_handler_remove(HEADSUP_Props.handler, 'WINDOW')
+        HEADSUP_Props.handler = None 
+    if HEADSUP_Props.handler_comp is not None:
+        bpy.types.SpaceNodeEditor.draw_handler_remove(HEADSUP_Props.handler_comp, 'WINDOW')
+        HEADSUP_Props.handler_comp = None
 
 def register():
     register_draw_handler()

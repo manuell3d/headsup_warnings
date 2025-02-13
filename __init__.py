@@ -27,21 +27,23 @@ bl_info = {
     'support': 'COMMUNITY',
     }
 
-from . import panels, handlers, operators, preferences, properties
+from . import panels, handlers, operators, preferences, properties, utils
 
 def register():
     properties.register()
     preferences.register()
+    handlers.register()
     operators.register()
     panels.register()
-    handlers.register()
+    
+    
     
 
 def unregister():
     handlers.warning(False)
-    handlers.unregister()
     panels.unregister()
     operators.unregister()
+    handlers.unregister()
     preferences.unregister()
     properties.unregister()
     

@@ -1,4 +1,5 @@
 import bpy
+
 from .operators import *
 from .preferences import *
 from .properties import *
@@ -25,7 +26,7 @@ class VIEW3D_PT_HeadsUpPanel_HeadsUp_Warnings(VIEW3D_PT_HeadsUpPanel, bpy.types.
         prefs = bpy.context.preferences.addons[__package__].preferences
         props = bpy.context.scene.HEADSUP_WarnInfoProperties
 
-        if not warn_state:
+        if not HEADSUP_Props.warn_state:
             row.label(text="No warnings to display :)")
             row = layout.row()
             row.operator("headsup_warnings.open_preferences", text="HeadsUp Preferences", icon='PREFERENCES')
@@ -37,7 +38,7 @@ class VIEW3D_PT_HeadsUpPanel_HeadsUp_Warnings(VIEW3D_PT_HeadsUpPanel, bpy.types.
         for i in range(1, 46):
             prop_name = f"warn_info_{i}"
             
-            if getattr(props, prop_name):  
+            if getattr(props, prop_name, None):  
                 prop_def = props.bl_rna.properties[prop_name]
                 prop_name_display = prop_def.name
                 row = box.row()
@@ -45,11 +46,11 @@ class VIEW3D_PT_HeadsUpPanel_HeadsUp_Warnings(VIEW3D_PT_HeadsUpPanel, bpy.types.
         
                 row.prop(props, prop_name, icon=icon, text=prop_name_display)
 
-        if props.warn_info_custom:
+        if getattr(props, "warn_info_custom", None):  
             prop_def = props.bl_rna.properties["warn_info_custom"]
             prop_name_display = prop_def.name
             row = box.row()
-            row.prop(props, warn_info_custom, icon='TEXT', text=prop_name_display)
+            row.prop(props, "warn_info_custom", icon='TEXT', text=prop_name_display)
         
         row = layout.row()
         row.operator("headsup_warnings.open_preferences", text="HeadsUp Preferences", icon='PREFERENCES')
@@ -59,9 +60,6 @@ class VIEW3D_PT_HeadsUpPanel_Object_Mismatch(VIEW3D_PT_HeadsUpPanel, bpy.types.P
     bl_label = "Object Visibilities"
 
     def draw(self, context):
-        # Access the global object_mismatches list
-        global object_mismatches 
-
         layout = self.layout
         row = layout.row()
         prefs = bpy.context.preferences.addons[__package__].preferences
@@ -78,7 +76,7 @@ class VIEW3D_PT_HeadsUpPanel_Object_Mismatch(VIEW3D_PT_HeadsUpPanel, bpy.types.P
         current_view_layer = bpy.context.view_layer
 
         # Separate mismatches into visible and non-visible in the current view layer
-        for mismatch in object_mismatches:
+        for mismatch in HEADSUP_Props.object_mismatches:
             object = mismatch['object']
             visibility = mismatch['view_layers']  # A list of view layers the object is visible in
 
@@ -136,7 +134,6 @@ class VIEW3D_PT_HeadsUpPanel_Collection_Mismatch(VIEW3D_PT_HeadsUpPanel, bpy.typ
     bl_label = "Collection Visibilities"
 
     def draw(self, context):
-        global collection_mismatches
         layout = self.layout
         row = layout.row()
         prefs = bpy.context.preferences.addons[__package__].preferences         
@@ -153,7 +150,7 @@ class VIEW3D_PT_HeadsUpPanel_Collection_Mismatch(VIEW3D_PT_HeadsUpPanel, bpy.typ
         current_view_layer = bpy.context.view_layer
 
         # Separate mismatches into visible and non-visible in the current view layer
-        for mismatch in collection_mismatches:
+        for mismatch in HEADSUP_Props.collection_mismatches:
             collection_name = mismatch['collection_name']
             visibility = mismatch['view_layers']  # A list of view layers the object is visible in
 
@@ -211,7 +208,6 @@ class VIEW3D_PT_HeadsUpPanel_Modifier_Mismatch(VIEW3D_PT_HeadsUpPanel, bpy.types
     bl_label = "Modifier Visibilities"
 
     def draw(self, context):
-        global modifier_mismatches
         layout = self.layout
         row = layout.row()
         prefs = bpy.context.preferences.addons[__package__].preferences
@@ -232,7 +228,7 @@ class VIEW3D_PT_HeadsUpPanel_Modifier_Mismatch(VIEW3D_PT_HeadsUpPanel, bpy.types
         current_view_layer = bpy.context.view_layer
 
         # Separate mismatches into visible and non-visible in the current view layer
-        for mismatch in modifier_mismatches:
+        for mismatch in HEADSUP_Props.modifier_mismatches:
             object = mismatch['object']
             visibility = mismatch['view_layers']  # A list of view layers the object is visible in
 
@@ -290,9 +286,6 @@ class VIEW3D_PT_HeadsUpPanel_Undefined_Nodes(VIEW3D_PT_HeadsUpPanel, bpy.types.P
     bl_label = "Undefined Nodes"
 
     def draw(self, context):
-        # Access the global object_mismatches list
-        global undefined_nodes
-
         layout = self.layout
         row = layout.row(align=True)
         prefs = bpy.context.preferences.addons[__package__].preferences
@@ -302,14 +295,14 @@ class VIEW3D_PT_HeadsUpPanel_Undefined_Nodes(VIEW3D_PT_HeadsUpPanel, bpy.types.P
             return
 
         # Create UI layout for mismatches
-        if not undefined_nodes:
+        if not HEADSUP_Props.undefined_nodes:
             row.label(text="No 'Undefined' nodes found")
         else:
             row.label(text="Materials contain 'Undefined' nodes:")
 
             # Boxes for visible and non-visible objects
             box = layout.box()
-            for material in undefined_nodes:
+            for material in HEADSUP_Props.undefined_nodes:
                 row = box.row()
                 row.label(text=material)
 

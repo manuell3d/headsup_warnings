@@ -1,12 +1,12 @@
 import bpy
+from .properties import *
 
 class HEADSUP_Preferences(bpy.types.AddonPreferences):
     bl_idname = __package__
 
     # Callback function for certain property changes
     def prop_update_callback(self, context):
-        global load_up_done
-        load_up_done = False
+        HEADSUP_Props.load_up_done = False
 
     # Customizable properties for colors and text size
     warn_color: bpy.props.FloatVectorProperty(
@@ -141,8 +141,8 @@ class HEADSUP_Preferences(bpy.types.AddonPreferences):
     ) 
     
     warn_12: bpy.props.BoolProperty(
-        name="Render: Render Border",
-        description="Warn me about a Render Border being used",
+        name="Render: Render Region",
+        description="Warn me about a Render Region being used",
         default=True
     ) 
     
@@ -394,7 +394,7 @@ class HEADSUP_Preferences(bpy.types.AddonPreferences):
 
     warn_45: bpy.props.BoolProperty(
         name="Compositing: Renderlayer Node Issue",
-        description="Show a central warning in the 3D View to remind me of the Version mismatch",
+        description="Show a warning for Renderlayer Node Issues, like missing Renderlayer nodes or muted savers",
         default=True,
     )  
 

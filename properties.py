@@ -1,37 +1,33 @@
 import bpy
 
-warn_state = None
-warning_message = ""
-warnings = []
-old_warnings = []
-mismatch_list = []
-original_theme_color = None
-handler = None
-handler_comp = None
-handler_gradient = None
-blender_version = bpy.app.version
-visibilities_list = []
-modifier_mismatches = set()
-system = bpy.context.preferences.system
-dpi = int(system.dpi * system.pixel_size)
-actual_text_size = 11
-object_mismatches = []
-collection_mismatches = []
-visible_objects = []
-undefined_nodes = []
-load_up_done = False
-startup_done = False
-problematic_materials = set()
-problematic_objects = set()
-problematic_collections = set()
-collection_check_bool = True
-compositor_check_bool = True
-view_layer_visible_collections = {}
-view_layer_visibilities = {}
-saved_just_now = False
-current_scene = None
-old_warn_state = None
-viewlayer_count = None
+class HEADSUP_Props:
+    handler = None #  
+    handler_comp = None
+    handler_gradient = None
+    warn_state = None
+    warning_message = ""
+    warnings = []
+    old_warnings = []
+    modifier_mismatches = set()
+    system = bpy.context.preferences.system
+    dpi = int(system.dpi * system.pixel_size)
+    actual_text_size = 11
+    object_mismatches = []
+    collection_mismatches = []
+    undefined_nodes = []
+    load_up_done = False
+    startup_done = False
+    problematic_materials = set()
+    problematic_objects = set()
+    problematic_collections = set()
+    collection_check_bool = True
+    compositor_check_bool = True
+    view_layer_visible_collections = {}
+    view_layer_visibilities = {}
+    saved_just_now = False
+    current_scene = None
+    old_warn_state = None
+    viewlayer_count = None
 
 class HEADSUP_WarnInfoProperties(bpy.types.PropertyGroup):
     def get_pass(self):
@@ -108,8 +104,8 @@ class HEADSUP_WarnInfoProperties(bpy.types.PropertyGroup):
     )
 #    12 Render Border
     warn_info_12: bpy.props.BoolProperty(
-        name="Render: Render Border",
-        description="Render Border is turned on in the Output Properties. Double check that render result is as expected. ▶▶▶ Consider turning off Output Properties → Format → Render Region",
+        name="Render: Render Region",
+        description="Render Region is turned on in the Output Properties. Double check that render result is as expected. ▶▶▶ Consider turning off Output Properties → Format → Render Region",
         default=False
     )
 #    13 Auto-Merge Vertices	     
@@ -318,7 +314,7 @@ class HEADSUP_WarnInfoProperties(bpy.types.PropertyGroup):
     )
 
 WarnInfoIconMap = {
-    1: 'CAMERA',
+    1: 'VIEW_CAMERA',
     2: 'RESTRICT_RENDER_OFF',
     3: 'SCULPTMODE_HLT',
     4: 'RADIOBUT_ON',
@@ -365,9 +361,8 @@ WarnInfoIconMap = {
 }
 
 def register():
-    global load_up_done, startup_done
-    load_up_done = False
-    startup_done = False
+    HEADSUP_Props.load_up_done = False
+    HEADSUP_Props.startup_done = False
     bpy.utils.register_class(HEADSUP_WarnInfoProperties)
     bpy.types.Scene.HEADSUP_WarnInfoProperties = bpy.props.PointerProperty(type=HEADSUP_WarnInfoProperties) 
 

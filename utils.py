@@ -18,7 +18,7 @@ def store_original_theme_color():
     prefs = bpy.context.preferences.addons[__package__].preferences
     theme = bpy.context.preferences.themes[0]
 
-    if blender_version >= (4, 3, 0):
+    if bpy.app.version >= (4, 3, 0):
         prefs.original_theme_color = theme.user_interface.editor_border
     else:
         prefs.original_theme_color = theme.user_interface.editor_outline
@@ -73,7 +73,7 @@ def multiple_sequence_nodes(check_materials):
                                     if image_name in image_sequences:
                                         # Compare settings
                                         if image_sequences[image_name] != settings:
-                                            problematic_materials.add(material)
+                                            HEADSUP_Props.problematic_materials.add(material)
                                             return True  # Found a match with different settings
                                     else:
                                         # Add the image and its settings to the dictionary
@@ -150,7 +150,7 @@ def draw_highlight_border(border_thickness, border_color=None):
         border_color = rgb_to_rgba(prefs.highlight_color, 1)  # (RGBA tuple)
 
     # Select the appropriate shader
-    if blender_version >= (4, 0, 0):
+    if bpy.app.version >= (4, 0, 0):
         HIGHLIGHT_BORDER_SHADER = gpu.shader.from_builtin('UNIFORM_COLOR')
     else:
         HIGHLIGHT_BORDER_SHADER = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
@@ -188,7 +188,7 @@ def draw_filled_red_circle():
     prefs = bpy.context.preferences.addons[__package__].preferences
     if bpy.context.space_data is not None and bpy.context.space_data.type == 'VIEW_3D':
         if bpy.context.space_data.overlay.show_overlays:
-            if blender_version >= (4, 0, 0):
+            if bpy.app.version >= (4, 0, 0):
                 RED_CIRCLE_SHADER = gpu.shader.from_builtin('SMOOTH_COLOR')
             else:
                 RED_CIRCLE_SHADER = gpu.shader.from_builtin('2D_SMOOTH_COLOR')
@@ -229,7 +229,7 @@ def draw_filled_red_circle():
 
                         x_pos = 10 * bpy.context.preferences.view.ui_scale + radius + toolshelf   
                         y_pos = height - 40 * bpy.context.preferences.view.ui_scale - radius
-                        if blender_version >= (4, 0, 0):
+                        if bpy.app.version >= (4, 0, 0):
                             y_pos = y_pos - 25 * bpy.context.preferences.view.ui_scale 
                         if not bpy.context.space_data.show_region_header:
                             y_pos = y_pos + 25 * bpy.context.preferences.view.ui_scale
@@ -269,7 +269,7 @@ def draw_filled_red_circle():
             blf.color(0, *prefs.highlight_color, 1.0)  # White text
             # Enable shadow
             blf.enable(0, blf.SHADOW)
-            if blender_version >= (4,0,0):
+            if bpy.app.version >= (4,0,0):
                 blf.shadow_offset(0, 0, 0)  # Offset shadow
                 blf.shadow(0, 6, 0.0, 0.0, 0.0, 0.8)
             else:
@@ -313,7 +313,7 @@ def draw_circular_gradient():
     colors.extend([(0.1, 0.1, 0.1, 0.0) for _ in range(segments + 1)])  # Transparent edges
 
     # Create a shader for drawing
-    if blender_version >= (4,0,0):
+    if bpy.app.version >= (4,0,0):
         shader = gpu.shader.from_builtin('SMOOTH_COLOR')
     else:
         shader = gpu.shader.from_builtin('2D_SMOOTH_COLOR')
@@ -330,173 +330,6 @@ def draw_circular_gradient():
 
     # Restore the default blend state
     gpu.state.blend_set('NONE')
-
-def update_visible_collections():
-    global view_layer_visible_collections
-    view_layer_visible_collections = {}
-
-    for layer in bpy.context.scene.view_layers:
-        visible_collections = set()  # Use a set to avoid duplicates
-        if not layer.use:
-            continue
-        def check_layer_collection(layer_coll):
-            # Skip checking this collection and its children if it is hidden in render
-            if layer_coll.collection.hide_render:
-                return
-
-            # Add the collection name if it is not excluded
-            if not layer_coll.exclude:
-                visible_collections.add(layer_coll.collection.name)
-
-            # Recursively check child collections
-            for child in layer_coll.children:
-                check_layer_collection(child)
-
-        # Start checking from the root layer collection
-        check_layer_collection(layer.layer_collection)
-        # Map the layer name to the list of visible collection names
-        view_layer_visible_collections[layer.name] = list(visible_collections)
-
-def check_object_mismatches(check_objects):
-    """Find objects with mismatched hide_render and hide_viewport statuses."""
-    SKIPPED_TYPES = {'CAMERA', 'IMAGE', 'LATTICE', 'ARMATURE', 'SPEAKER', 'FORCE_FIELD'}
-
-    global problematic_objects
-
-    object_view_layer_map = {}
-
-    for obj in check_objects:
-        if not obj or obj.type in SKIPPED_TYPES:
-            continue
-
-        # Initialize the object in the map
-        object_view_layer_map[obj] = []
-
-        # Find collection names the object belongs to
-        obj_collection_names = {coll.name for coll in obj.users_collection}
-
-        # Check if these collection names appear in the view_layer_visible_collections
-        for layer_name, visible_collections in view_layer_visible_collections.items():
-            if obj_collection_names.intersection(visible_collections):
-                # If the object has a mismatch, add it to the map and problematic_objects
-                if obj.hide_render != obj.hide_viewport:
-                    object_view_layer_map[obj].append(layer_name)
-                    problematic_objects.add(obj)
-
-    # Build mismatch list
-    mismatch_list = [
-        {"object": obj, "view_layers": view_layers}
-        for obj, view_layers in object_view_layer_map.items()
-        if view_layers
-    ]
-
-    return mismatch_list
-
-def check_modifier_mismatches(check_objects):
-    """Find objects with mismatched modifier visibility (show_viewport vs show_render)."""
-    CHECKED_TYPES = {'MESH', 'CURVE', 'LATTICE', 'FONT', 'GPENCIL'}
-
-    global problematic_objects
-
-    mismatch_dict = {}
-
-    for obj in check_objects:
-        if not obj or obj.type not in CHECKED_TYPES:
-            continue
-
-        # Skip objects fully hidden
-        if obj.hide_viewport and obj.hide_render:
-            continue
-
-        # Check for mismatched modifiers
-        modifier_mismatch = any(
-            modifier.show_viewport != modifier.show_render for modifier in obj.modifiers
-        )
-
-        if modifier_mismatch:
-            if obj not in mismatch_dict:
-                mismatch_dict[obj] = []
-
-            # Get the collections the object belongs to
-            obj_collection_names = {coll.name for coll in obj.users_collection}
-
-            # Check if these collections intersect with visible collections for any view layer
-            for layer_name, visible_collections in view_layer_visible_collections.items():
-                if obj_collection_names.intersection(visible_collections):
-                    mismatch_dict[obj].append(layer_name)
-                    problematic_objects.add(obj)
-
-    mismatch_list = [
-        {"object": obj, "view_layers": view_layers}
-        for obj, view_layers in mismatch_dict.items()
-        if view_layers
-    ]
-    return mismatch_list
-
-def check_collection_mismatches():
-    """Find collections with mismatched hide_render and hide_viewport attributes."""
-    mismatch_dict = {}
-
-    def check_layer_collection(layer_coll, view_layer_name):
-        """Recursively check layer collections for mismatches."""
-        collection = layer_coll.collection
-
-        # Skip collection if it is excluded (this applies to the collection itself)
-        if layer_coll.exclude:
-            # Only skip the current collection, but still check its children
-            pass
-        else:
-            # Determine visibility based on hide_render (should it be visible in the renderer?)
-            collection_visible = not collection.hide_render
-
-            # Check for mismatches between hide_render and hide_viewport
-            if collection.hide_render != collection.hide_viewport:
-                if collection.name not in mismatch_dict:
-                    mismatch_dict[collection.name] = []
-                mismatch_dict[collection.name].append(view_layer_name)
-
-        # Recursively check child collections, regardless of the parent's exclusion (unless the child is excluded)
-        for child_layer_coll in layer_coll.children:
-            check_layer_collection(
-                child_layer_coll,
-                view_layer_name=view_layer_name
-            )
-
-    # Iterate through all view layers
-    for layer in bpy.context.scene.view_layers:
-        check_layer_collection(
-            layer.layer_collection,
-            view_layer_name=layer.name
-        )
-
-    # Convert the dictionary to a list of mismatches
-    mismatch_list = [{"collection_name": coll_name, "view_layers": view_layers}
-                     for coll_name, view_layers in mismatch_dict.items()]
-    return mismatch_list
-
-def on_any_collection_or_layer_change():
-    """Callback when any collection or layer property changes."""
-    global collection_check_bool, problematic_objects, compositor_check_bool
-    collection_check_bool = True
-    compositor_check_bool = True
-    update_visible_collections()
-    for obj in bpy.context.scene.objects:
-        problematic_objects.add(obj)
-
-def compositor_callback():
-    global compositor_check_bool
-    compositor_check_bool = True
-
-def on_material_change():
-    for mat in bpy.data.materials:
-        if not mat.library:
-            problematic_materials.add(mat)
-
-def on_obj_visibility_change():
-    """Callback when any collection or layer property changes."""
-    global problematic_objects
-    for obj in bpy.context.scene.objects:
-        problematic_objects.add(obj)
 
 def check_renderlayer_compositing_conditions():
     def is_connected_to_file_output(node, visited):
