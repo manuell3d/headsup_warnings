@@ -524,7 +524,17 @@ def headsup_check_warnings(scene, depsgraph):
                     HEADSUP_Props.compositor_check_bool = True
         if HEADSUP_Props.viewlayer_count != len(bpy.context.scene.view_layers):
             HEADSUP_Props.viewlayer_count = len(bpy.context.scene.view_layers)
+            check_objects = set()
+            check_materials = set()        
+
+            for obj in bpy.context.scene.objects:
+                check_objects.add(obj)
+            for mat in bpy.data.materials:
+                if not mat.library:
+                    check_materials.add(mat)
+            HEADSUP_Props.collection_check_bool = True
             HEADSUP_Props.compositor_check_bool = True
+            update_visible_collections()
             
         # Problematic items have been added to the check-lists, if they are still problematic, they'll be added again
         HEADSUP_Props.problematic_materials = set()
