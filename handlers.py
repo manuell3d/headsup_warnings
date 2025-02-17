@@ -83,179 +83,187 @@ def draw_warning_text():
     if HEADSUP_Props.warn_state:
         # Starting positions for text warnings, starting from lower left corner 
         for area in bpy.context.screen.areas:
-            if area.type == 'VIEW_3D':
-                # Set default positions for each VIEW_3D area
-                x_position = 10
-                y_position = 10  # Reset y_position to 10 for each VIEW_3D area
+            if area.type != 'VIEW_3D':
+                continue  # Skip non-3D areas
 
-                # Check for TOOLS region and set x_position if found
-                tools_region = next((region for region in area.regions if region.type == 'TOOLS'), None)
+            # Ensure the text is drawn only in the active 3D viewport
+            if area != bpy.context.area:
+                continue  # Skip if this is not the active area
+            
+            # Set default positions for each VIEW_3D area
+            x_position = 10
+            y_position = 10  # Reset y_position to 10 for each VIEW_3D area
+
+            # Check for TOOLS region and set x_position if found
+            tools_region = next((region for region in area.regions if region.type == 'TOOLS'), None)
+            if tools_region:
+                toolshelf = tools_region.width
+                x_position = 9 + toolshelf 
+            
+            header_region = next((region for region in area.regions if region.type == 'HEADER'), None) 
+            if header_region:
+                if header_region.alignment == 'BOTTOM':
+                    header_bottom = True
+                    y_position = y_position + 27 * bpy.context.preferences.view.ui_scale
+            shelf_region = next((region for region in area.regions if region.type == 'ASSET_SHELF'), None)
+            if shelf_region:
+                if shelf_region.height > 1:
+                    y_position = y_position + shelf_region.height + 27 * bpy.context.preferences.view.ui_scale
+
+            if bpy.context.space_data is not None and bpy.context.space_data.show_region_header == False:
+                if header_bottom:
+                    y_position = y_position - 27 * bpy.context.preferences.view.ui_scale
+
+            hud_region = next((region for region in area.regions if region.type == 'HUD'), None) 
+            if hud_region:
                 if tools_region:
-                    toolshelf = tools_region.width
-                    x_position = 9 + toolshelf 
-                header_region = next((region for region in area.regions if region.type == 'HEADER'), None) 
-                if header_region:
-                    if header_region.alignment == 'BOTTOM':
-                        header_bottom = True
-                        y_position = y_position + 27 * bpy.context.preferences.view.ui_scale
-                shelf_region = next((region for region in area.regions if region.type == 'ASSET_SHELF'), None)
-                if shelf_region:
-                    if shelf_region.height > 1:
-                        y_position = y_position + shelf_region.height + 27 * bpy.context.preferences.view.ui_scale
-
-        if bpy.context.space_data is not None and bpy.context.space_data.show_region_header == False:
-            if header_bottom:
-                y_position = y_position - 27 * bpy.context.preferences.view.ui_scale
-
-        if is_redo_panel_visible():
-            y_position = y_position + 25 * bpy.context.preferences.view.ui_scale
-        
-        
-        HEADSUP_Props.warning_message = " , ".join(HEADSUP_Props.warnings) if HEADSUP_Props.warnings else ""
-        warning_message_full = f"HeadsUp: {HEADSUP_Props.warning_message}"
-        
-        # For viewport specific options, remove the warning text if it does not apply.
-        if bpy.context.space_data is not None and bpy.context.space_data.type == 'VIEW_3D':
-            area_identifier = hash(bpy.context.space_data)
-            clean_warnings = clean_viewport_warnings(HEADSUP_Props.warnings, area_identifier)
-            HEADSUP_Props.warning_message = " , ".join(clean_warnings[0]) if clean_warnings else ""
+                    if hud_region.x - toolshelf > 0:
+                        y_position = y_position + 25 * bpy.context.preferences.view.ui_scale
+            
+            HEADSUP_Props.warning_message = " , ".join(HEADSUP_Props.warnings) if HEADSUP_Props.warnings else ""
             warning_message_full = f"HeadsUp: {HEADSUP_Props.warning_message}"
-            if clean_warnings[1] and prefs.viewport_highlighting and prefs.toggle_with_overlays and not bpy.context.space_data.overlay.show_overlays:
-                draw_highlight_border(8)
             
-            prev_message = warning_message_full
-            warning_message_full = re.sub(r"^\s*HeadsUp:\s*$", "", prev_message)
+            # For viewport specific options, remove the warning text if it does not apply.
+            if bpy.context.space_data is not None and bpy.context.space_data.type == 'VIEW_3D':
+                area_identifier = hash(bpy.context.space_data)
+                clean_warnings = clean_viewport_warnings(HEADSUP_Props.warnings, area_identifier)
+                HEADSUP_Props.warning_message = " , ".join(clean_warnings[0]) if clean_warnings else ""
+                warning_message_full = f"HeadsUp: {HEADSUP_Props.warning_message}"
+                if clean_warnings[1] and prefs.viewport_highlighting and prefs.toggle_with_overlays and not bpy.context.space_data.overlay.show_overlays:
+                    draw_highlight_border(8)
+                
+                prev_message = warning_message_full
+                warning_message_full = re.sub(r"^\s*HeadsUp:\s*$", "", prev_message)
 
-            # Remove the string if Overlays are deactivated 
-            if not bpy.context.space_data.overlay.show_overlays and prefs.toggle_with_overlays:
-                warning_message_full = ""
-            
+                # Remove the string if Overlays are deactivated 
+                if not bpy.context.space_data.overlay.show_overlays and prefs.toggle_with_overlays:
+                    warning_message_full = ""
+                
+            # Initialize color state and buffer to store characters for drawing
+            inside_brackets = False
+            current_word = ""
         
-        # Initialize color state and buffer to store characters for drawing
-        inside_brackets = False
-        current_word = ""
-    
-        # Calculate and set text size
-        HEADSUP_Props.actual_text_size = calculate_text_size(prefs)
-        if bpy.app.version >= (4, 0, 0):
-            blf.size(0, HEADSUP_Props.actual_text_size)
-        else: 
-            blf.size(0, HEADSUP_Props.actual_text_size, bpy.context.preferences.system.dpi)
+            # Calculate and set text size
+            HEADSUP_Props.actual_text_size = calculate_text_size(prefs)
+            if bpy.app.version >= (4, 0, 0):
+                blf.size(0, HEADSUP_Props.actual_text_size)
+            else: 
+                blf.size(0, HEADSUP_Props.actual_text_size, bpy.context.preferences.system.dpi)
 
-        # Enable shadow
-        blf.enable(0, blf.SHADOW)
-        if bpy.app.version >= (4,0,0):
-            blf.shadow_offset(0, 0, 0)  # Offset shadow
-            blf.shadow(0, 6, 0.0, 0.0, 0.0, 0.8)
-        else:
-            blf.shadow_offset(0, 1, -1)  # Offset shadow (x=2, y=-2)
-            blf.shadow(0, 3, 0.0, 0.0, 0.0, 0.9)  # Blur level and shadow color (black with 70% opacity)
-
-
-        for char in warning_message_full:
-            if char == "[":
-                # Draw any accumulated text in orange before entering brackets
-                if current_word:
-                    blf.color(0, *prefs.warn_color, 1.0)  # Orange for text outside brackets
-                    blf.position(0, x_position, y_position, 0)
-                    blf.draw(0, current_word)
-                    x_position += blf.dimensions(0, current_word)[0]
-                    current_word = ""
-                
-                # Draw the "[" bracket in white
-                blf.color(0, *prefs.highlight_color, 1.0)  # White for brackets
-                blf.position(0, x_position, y_position, 0)
-                blf.draw(0, "[")
-                x_position += blf.dimensions(0, "[")[0]
-                
-                inside_brackets = True
-            
-            elif char == "]":
-                # Draw any accumulated text in white before exiting brackets
-                if current_word:
-                    blf.color(0, *prefs.highlight_color, 1.0)  # White for text inside brackets
-                    blf.position(0, x_position, y_position, 0)
-                    blf.draw(0, current_word)
-                    x_position += blf.dimensions(0, current_word)[0]
-                    current_word = ""
-                
-                # Draw the "]" bracket in white
-                blf.color(0, *prefs.highlight_color, 1.0)  # White for brackets
-                blf.position(0, x_position, y_position, 0)
-                blf.draw(0, "]")
-                x_position += blf.dimensions(0, "]")[0]
-                
-                inside_brackets = False
-            
+            # Enable shadow
+            blf.enable(0, blf.SHADOW)
+            if bpy.app.version >= (4,0,0):
+                blf.shadow_offset(0, 0, 0)  # Offset shadow
+                blf.shadow(0, 6, 0.0, 0.0, 0.0, 0.8)
             else:
-                # Accumulate characters for the current section
-                current_word += char
+                blf.shadow_offset(0, 1, -1)  # Offset shadow (x=2, y=-2)
+                blf.shadow(0, 3, 0.0, 0.0, 0.0, 0.9)  # Blur level and shadow color (black with 70% opacity)
 
-        # Draw any remaining text in the appropriate color
-        if current_word:
-            color = (*prefs.highlight_color, 1.0) if inside_brackets else (*prefs.warn_color, 1.0)
-            blf.color(0, *color)
-            blf.position(0, x_position, y_position, 0)
-            blf.draw(0, current_word)
+            for char in warning_message_full:
+                if char == "[":
+                    # Draw any accumulated text in orange before entering brackets
+                    if current_word:
+                        blf.color(0, *prefs.warn_color, 1.0)  # Orange for text outside brackets
+                        blf.position(0, x_position, y_position, 0)
+                        blf.draw(0, current_word)
+                        x_position += blf.dimensions(0, current_word)[0]
+                        current_word = ""
+                    
+                    # Draw the "[" bracket in white
+                    blf.color(0, *prefs.highlight_color, 1.0)  # White for brackets
+                    blf.position(0, x_position, y_position, 0)
+                    blf.draw(0, "[")
+                    x_position += blf.dimensions(0, "[")[0]
+                    
+                    inside_brackets = True
+                
+                elif char == "]":
+                    # Draw any accumulated text in white before exiting brackets
+                    if current_word:
+                        blf.color(0, *prefs.highlight_color, 1.0)  # White for text inside brackets
+                        blf.position(0, x_position, y_position, 0)
+                        blf.draw(0, current_word)
+                        x_position += blf.dimensions(0, current_word)[0]
+                        current_word = ""
+                    
+                    # Draw the "]" bracket in white
+                    blf.color(0, *prefs.highlight_color, 1.0)  # White for brackets
+                    blf.position(0, x_position, y_position, 0)
+                    blf.draw(0, "]")
+                    x_position += blf.dimensions(0, "]")[0]
+                    
+                    inside_brackets = False
+                
+                else:
+                    # Accumulate characters for the current section
+                    current_word += char
+
+            # Draw any remaining text in the appropriate color
+            if current_word:
+                color = (*prefs.highlight_color, 1.0) if inside_brackets else (*prefs.warn_color, 1.0)
+                blf.color(0, *color)
+                blf.position(0, x_position, y_position, 0)
+                blf.draw(0, current_word)
+            
+            warning_message_old = warning_message_full
+
+
+            if prefs.warn_4 and prefs.warn_4_a and bpy.context.scene.tool_settings.use_keyframe_insert_auto:
+                if bpy.context.mode == 'OBJECT' or bpy.context.mode == 'POSE':
+                    draw_filled_red_circle()   
         
-        warning_message_old = warning_message_full
+            # "Fullscreen" Version warning in the center of the 3D View
+            if prefs.warn_44_a and not HEADSUP_Props.saved_just_now:
+                if bpy.data.filepath != '':
+                    current_version = bpy.app.version_file[:2]
+                    file_version = bpy.data.version[:2]
 
-        if prefs.warn_4 and prefs.warn_4_a and bpy.context.scene.tool_settings.use_keyframe_insert_auto:
-            if bpy.context.mode == 'OBJECT' or bpy.context.mode == 'POSE':
-                draw_filled_red_circle()   
-       
-        # "Fullscreen" Version warning in the center of the 3D View
-        if prefs.warn_44_a and not HEADSUP_Props.saved_just_now:
-            if bpy.data.filepath != '':
-                current_version = bpy.app.version_file[:2]
-                file_version = bpy.data.version[:2]
+                    if file_version != current_version:
+                        font_id = 0  
+                        area_width = bpy.context.area.width
+                        area_height = bpy.context.area.height
 
-                if file_version != current_version:
-                    font_id = 0  
-                    area_width = bpy.context.area.width
-                    area_height = bpy.context.area.height
+                        # Set warning text
+                        blf.color(font_id, *prefs.warn_color, 1.0)
+                        if bpy.app.version >= (4, 0, 0):
+                            blf.size(font_id, 33)
+                        else:
+                            blf.size(font_id, 30, bpy.context.preferences.system.dpi)
 
-                    # Set warning text
-                    blf.color(font_id, *prefs.warn_color, 1.0)
-                    if bpy.app.version >= (4, 0, 0):
-                        blf.size(font_id, 33)
-                    else:
-                        blf.size(font_id, 30, bpy.context.preferences.system.dpi)
+                        # Enable shadow effect
+                        blf.enable(font_id, blf.SHADOW)
+                        blf.shadow_offset(font_id, 0, 0)  
+                        if bpy.app.version >= (4, 0, 0):
+                            blf.shadow(font_id, 6, 0.0, 0.0, 0.0, 0.9)
+                        else:
+                            blf.shadow(font_id, 5, 0.0, 0.0, 0.0, 0.9)
 
-                    # Enable shadow effect
-                    blf.enable(font_id, blf.SHADOW)
-                    blf.shadow_offset(font_id, 0, 0)  
-                    if bpy.app.version >= (4, 0, 0):
-                        blf.shadow(font_id, 6, 0.0, 0.0, 0.0, 0.9)
-                    else:
-                        blf.shadow(font_id, 5, 0.0, 0.0, 0.0, 0.9)
+                        warning_text = "Attention:"
+                        text_width, _ = blf.dimensions(font_id, warning_text)
+                        blf.position(font_id, (area_width - text_width) / 2, area_height / 2 + 35, 0)
+                        blf.draw(font_id, warning_text)
 
-                    warning_text = "Attention:"
-                    text_width, _ = blf.dimensions(font_id, warning_text)
-                    blf.position(font_id, (area_width - text_width) / 2, area_height / 2 + 35, 0)
-                    blf.draw(font_id, warning_text)
+                        # Set file version text
+                        blf.color(font_id, *prefs.highlight_color, 1.0)
+                        file_version_text = f"File created in Blender {file_version[0]}.{file_version[1]}"
+                        text_width, _ = blf.dimensions(font_id, file_version_text)
+                        blf.position(font_id, (area_width - text_width) / 2, area_height / 2, 0)
+                        blf.draw(font_id, file_version_text)
 
-                    # Set file version text
-                    blf.color(font_id, *prefs.highlight_color, 1.0)
-                    file_version_text = f"File created in Blender {file_version[0]}.{file_version[1]}"
-                    text_width, _ = blf.dimensions(font_id, file_version_text)
-                    blf.position(font_id, (area_width - text_width) / 2, area_height / 2, 0)
-                    blf.draw(font_id, file_version_text)
+                        # Set save file reminder text
+                        if bpy.app.version >= (4, 0, 0):
+                            blf.size(font_id, 15)
+                        else:
+                            blf.size(font_id, 15, bpy.context.preferences.system.dpi)
 
-                    # Set save file reminder text
-                    if bpy.app.version >= (4, 0, 0):
-                        blf.size(font_id, 15)
-                    else:
-                        blf.size(font_id, 15, bpy.context.preferences.system.dpi)
-
-                    reminder_text = "HeadsUp: Save file to confirm and remove the warning."
-                    text_width, _ = blf.dimensions(font_id, reminder_text)
-                    blf.position(font_id, (area_width - text_width) / 2, area_height / 2 - 20, 0)
-                    blf.draw(font_id, reminder_text)
-        # Reset color to default after drawing
-        blf.color(0, 1.0, 1.0, 1.0, 1.0)
-        blf.disable(0, blf.SHADOW)
-    
+                        reminder_text = "HeadsUp: Save file to confirm and remove the warning."
+                        text_width, _ = blf.dimensions(font_id, reminder_text)
+                        blf.position(font_id, (area_width - text_width) / 2, area_height / 2 - 20, 0)
+                        blf.draw(font_id, reminder_text)
+            # Reset color to default after drawing
+            blf.color(0, 1.0, 1.0, 1.0, 1.0)
+            blf.disable(0, blf.SHADOW)
+        
 def draw_warning_text_comp():
     """Draw warning text in the compositor if warn_state is True, with white text and brackets within [ ] and orange outside."""
     prefs = bpy.context.preferences.addons[__package__].preferences
