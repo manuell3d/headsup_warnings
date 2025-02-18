@@ -396,6 +396,12 @@ class HEADSUP_Preferences(bpy.types.AddonPreferences):
         name="Compositing: Renderlayer Node Issue",
         description="Show a warning for Renderlayer Node Issues, like missing Renderlayer nodes or muted savers",
         default=True,
+    )
+    
+    warn_46: bpy.props.BoolProperty(
+        name="Active Object: In Front",
+        description="Show a warning if the Active Object is set to 'In Front'",
+        default=True,
     )  
 
     custom_warn: bpy.props.BoolProperty(
@@ -581,6 +587,7 @@ class HEADSUP_Preferences(bpy.types.AddonPreferences):
         grid.prop(self, "warn_33")  # Active Object: Locked Transforms
         grid.prop(self, "warn_34")  # Active Object: Rig in Rest Position
         grid.prop(self, "warn_40")  # Active Object: Render < Viewport SubDiv
+        grid.prop(self, "warn_46")  # Active Object: In Front
         grid.prop(self, "warn_42")  # Data: Missing Textures
         grid.prop(self, "warn_43")  # Data: Missing Libraries
         row = grid.row()

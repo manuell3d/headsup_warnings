@@ -27,18 +27,6 @@ def store_original_theme_color():
         print("HeadsUp: Stored current theme color!")
         prefs.first_setup_bool = True
     
-def is_redo_panel_visible():
-    if bpy.context.window_manager.operators:
-        recent_operator = bpy.context.window_manager.operators[-1]
-        if hasattr(recent_operator, "bl_options") and 'REGISTER' in recent_operator.bl_options and hasattr(recent_operator, "rna_type"):
-            try:
-                for prop in recent_operator.properties.rna_type.properties:
-                    if not prop.is_readonly:
-                        return True  # The operator has adjustable properties
-            except:
-                return True
-    return False
-    
 def multiple_sequence_nodes(check_materials):
     # Store image sequence nodes with their properties
     image_sequences = {}

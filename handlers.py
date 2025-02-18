@@ -56,7 +56,8 @@ from .properties import HEADSUP_Props
 #    42 Missing: Textures
 #    43 Missing: Libraries
 #    44 Blender Version
-#    45 Compositing: Renderlayer Node Issues
+#    45 Compositing: Renderlayer Node 
+#    46 Active Object: In Front
 
 def check_startup_time():
     # Check if 1 second has passed since Blender started
@@ -113,11 +114,11 @@ def draw_warning_text():
             if bpy.context.space_data is not None and bpy.context.space_data.show_region_header == False:
                 if header_bottom:
                     y_position = y_position - 27 * bpy.context.preferences.view.ui_scale
-
+            # Detection method that finally seems to work to find out if the HUD element (redo panel) is open or not
             hud_region = next((region for region in area.regions if region.type == 'HUD'), None) 
             if hud_region:
                 if tools_region:
-                    if hud_region.x - toolshelf > 0:
+                    if hud_region.x - area.x - toolshelf > 0:
                         y_position = y_position + 25 * bpy.context.preferences.view.ui_scale
             
             HEADSUP_Props.warning_message = " , ".join(HEADSUP_Props.warnings) if HEADSUP_Props.warnings else ""
@@ -475,7 +476,7 @@ def headsup_check_warnings(scene, depsgraph):
     
     # Reset all warn_info properties
     props.warn_info_custom = False
-    for i in range(1, 46):  # From 1 to 45
+    for i in range(1, 47):  # From 1 to 46
         setattr(props, f"warn_info_{i}", False)
 
     for view_layer in bpy.context.scene.view_layers:
@@ -1178,6 +1179,11 @@ def headsup_check_warnings(scene, depsgraph):
                     HEADSUP_Props.compositor_check_bool = True
                 else:
                     HEADSUP_Props.compositor_check_bool = False
+        
+        if prefs.warn_46:
+            if active_obj.show_in_front:
+                new_warnings.append(f"Active Object is [In Front]")
+                props.warn_info_46 = True
 
         if prefs.custom_warn:
             for text_block in bpy.data.texts:

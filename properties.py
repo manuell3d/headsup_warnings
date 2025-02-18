@@ -306,6 +306,12 @@ class HEADSUP_WarnInfoProperties(bpy.types.PropertyGroup):
         description="In the Compositor a Renderlayer Node is either Muted or connected to a muted File Output Saver although the RenderLayer is active. ▶▶▶ Go to the Compositor and check",
         default=False
     )
+#    46 Active Object: In Front
+    warn_info_46: bpy.props.BoolProperty(
+        name="Active Object: In Front",
+        description="The Active Object is set to 'In Front', being shown in Front of all other objects in the 3D viewport. This might be confusing sometimes. ▶▶▶ Go to Object Properties → Viewport Display → 'In Front' ",
+        default=False
+    )
 #    Custom: Custom Text
     warn_info_custom: bpy.props.BoolProperty(
         name="CUSTOM Warning",
@@ -357,7 +363,8 @@ WarnInfoIconMap = {
     42:'LIBRARY_DATA_BROKEN',
     43:'LIBRARY_DATA_BROKEN',
     44:'BLENDER',
-    45:'NODE_COMPOSITING'
+    45:'NODE_COMPOSITING',
+    46:'XRAY',
 }
 
 def register():
