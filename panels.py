@@ -306,8 +306,6 @@ class VIEW3D_PT_HeadsUpPanel_Undefined_Nodes(VIEW3D_PT_HeadsUpPanel, bpy.types.P
                 row = box.row()
                 row.label(text=material)
 
-
-
 def register():
     bpy.utils.register_class(VIEW3D_PT_HeadsUpPanel_HeadsUp_Warnings)
     bpy.utils.register_class(VIEW3D_PT_HeadsUpPanel_Collection_Mismatch)
