@@ -1,7 +1,8 @@
 import bpy
 
 class HEADSUP_Props:
-    handler = None #  
+    handler = None 
+    handler_sequencer = None 
     handler_comp = None
     handler_gradient = None
     warn_state = None

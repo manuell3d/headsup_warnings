@@ -214,6 +214,7 @@ def draw_warning_text():
             if prefs.warn_4 and prefs.warn_4_a and bpy.context.scene.tool_settings.use_keyframe_insert_auto:
                 if bpy.context.mode == 'OBJECT' or bpy.context.mode == 'POSE':
                     draw_filled_red_circle()   
+                    draw_highlight_border(8, (1, 0, 0, 0.5))
         
             # "Fullscreen" Version warning in the center of the 3D View
             if prefs.warn_44_a and not HEADSUP_Props.saved_just_now:
@@ -1471,8 +1472,7 @@ def register():
     register_draw_handler()
     subscribe_to_global_visibility_and_exclusion()
     bpy.app.handlers.depsgraph_update_post.append(headsup_check_warnings)
-    bpy.app.handlers.load_post.append(headsup_check_warnings)
-    bpy.app.handlers.load_factory_startup_post.append(headsup_check_warnings)
+    bpy.app.handlers.load_factory_startup_post.append(on_file_load)
     bpy.app.handlers.load_post.append(on_file_load)
     bpy.app.handlers.save_post.append(on_file_save)
     bpy.app.timers._startup_time = time.time()
@@ -1482,7 +1482,6 @@ def unregister():
     unregister_draw_handler()
     bpy.msgbus.clear_by_owner(subscribe_to_global_visibility_and_exclusion)
     bpy.app.handlers.depsgraph_update_post.remove(headsup_check_warnings)
-    bpy.app.handlers.load_post.remove(headsup_check_warnings)
-    bpy.app.handlers.load_factory_startup_post.remove(headsup_check_warnings)
+    bpy.app.handlers.load_factory_startup_post.remove(on_file_load)
     bpy.app.handlers.load_post.remove(on_file_load)
     bpy.app.handlers.save_post.remove(on_file_save)
