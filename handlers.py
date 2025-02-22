@@ -1220,7 +1220,7 @@ def headsup_check_warnings(scene, depsgraph):
         
 def check_object_mismatches(check_objects):
     """Find objects with mismatched hide_render and hide_viewport statuses."""
-    SKIPPED_TYPES = {'CAMERA', 'IMAGE', 'LATTICE', 'ARMATURE', 'SPEAKER', 'FORCE_FIELD'}
+    SKIPPED_TYPES = {'CAMERA', 'EMPTY', 'LATTICE', 'ARMATURE', 'SPEAKER'}
 
     object_view_layer_map = {}
 
@@ -1253,7 +1253,10 @@ def check_object_mismatches(check_objects):
 
 def check_modifier_mismatches(check_objects):
     """Find objects with mismatched modifier visibility (show_viewport vs show_render)."""
-    CHECKED_TYPES = {'MESH', 'CURVE', 'LATTICE', 'FONT', 'GPENCIL'}
+    if bpy.app.version >= (4, 3, 0):
+        CHECKED_TYPES = {'MESH', 'CURVE', 'LATTICE', 'FONT', 'GREASEPENCIL'}
+    else:
+        CHECKED_TYPES = {'MESH', 'CURVE', 'LATTICE', 'FONT', 'GPENCIL'}
 
     mismatch_dict = {}
 

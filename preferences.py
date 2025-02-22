@@ -508,7 +508,7 @@ class HEADSUP_Preferences(bpy.types.AddonPreferences):
         row = box.row(align=True)
         row.prop(self, "original_theme_color")
         row = box.row(align=True)
-        row.operator("headsup_warnings.store_color", text="Store current theme color")
+        row.operator("wm.headsup_store_color", text="Store current theme color")
         row = box.row(align=True)
         row.label(text="Addon stores your correct theme color automatically. Use button after theme changes.")
 

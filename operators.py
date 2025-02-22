@@ -5,7 +5,7 @@ from .properties import *
 from .preferences import *
 
 class HEADSUP_OT_Select_Highlight(bpy.types.Operator):
-    bl_idname = "headsup_warnings.select_highlight"         # Unique identifier
+    bl_idname = "wm.headsup_select_highlight"         # Unique identifier
     bl_label = ""                 # Label for the operator button
     bl_description = "Select and highlight in Outliner"  # Tooltip description
     bl_options = {'UNDO'}          # Allows for undo functionality
@@ -65,7 +65,7 @@ class HEADSUP_OT_Select_Highlight(bpy.types.Operator):
     
 class HEADSUP_OT_Select_Highlight_Collection(bpy.types.Operator):
     """Highlight a collection in the Outliner and search for it's name"""
-    bl_idname = "headsup_warnings.highlight_collection"
+    bl_idname = "wm.headsup_highlight_collection"
     bl_label = "Highlight Collection"
     bl_options = {'UNDO'}
     
@@ -123,7 +123,7 @@ class HEADSUP_OT_Select_Highlight_Collection(bpy.types.Operator):
                         space.show_restrict_column_indirect_only = True
 
 class HEADSUP_OT_Store_Color(bpy.types.Operator):
-    bl_idname = "headsup_warnings.store_color"
+    bl_idname = "wm.headsup_store_color"
     bl_label = "Store the current theme color in the Original Theme Color preference."
 
     def execute(self, context):
@@ -133,7 +133,7 @@ class HEADSUP_OT_Store_Color(bpy.types.Operator):
 
 class HEADSUP_OT_OpenPreferences(bpy.types.Operator):
     """Open Preferences in Add-Ons Tab with 'HeadsUp' in Search"""
-    bl_idname = "headsup_warnings.open_preferences"
+    bl_idname = "wm.headsup_open_preferences"
     bl_label = "Open HeadsUp Preferences"
 
     def execute(self, context):

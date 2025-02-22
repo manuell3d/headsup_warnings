@@ -29,7 +29,7 @@ class VIEW3D_PT_HeadsUpPanel_HeadsUp_Warnings(VIEW3D_PT_HeadsUpPanel, bpy.types.
         if not HEADSUP_Props.warn_state:
             row.label(text="No warnings to display :)")
             row = layout.row()
-            row.operator("headsup_warnings.open_preferences", text="HeadsUp Preferences", icon='PREFERENCES')
+            row.operator("wm.headsup_open_preferences", text="HeadsUp Preferences", icon='PREFERENCES')
             return
 
         row.label(text="Read tooltips for more info", icon='INFO')
@@ -53,7 +53,7 @@ class VIEW3D_PT_HeadsUpPanel_HeadsUp_Warnings(VIEW3D_PT_HeadsUpPanel, bpy.types.
             row.prop(props, "warn_info_custom", icon='TEXT', text=prop_name_display)
         
         row = layout.row()
-        row.operator("headsup_warnings.open_preferences", text="HeadsUp Preferences", icon='PREFERENCES')
+        row.operator("wm.headsup_open_preferences", text="HeadsUp Preferences", icon='PREFERENCES')
 
 class VIEW3D_PT_HeadsUpPanel_Object_Mismatch(VIEW3D_PT_HeadsUpPanel, bpy.types.Panel):
     bl_idname = "VIEW3D_PT_object_mismatch_panel"
@@ -126,7 +126,7 @@ class VIEW3D_PT_HeadsUpPanel_Object_Mismatch(VIEW3D_PT_HeadsUpPanel, bpy.types.P
 
                 # Add operator for selection only for visible box
                 if box_type == 'visible_box':
-                    op = row.operator("headsup_warnings.select_highlight", text="", icon='OUTLINER')
+                    op = row.operator("wm.headsup_select_highlight", text="", icon='OUTLINER')
                     op.object_name = obj.name
 
 class VIEW3D_PT_HeadsUpPanel_Collection_Mismatch(VIEW3D_PT_HeadsUpPanel, bpy.types.Panel):
@@ -200,7 +200,7 @@ class VIEW3D_PT_HeadsUpPanel_Collection_Mismatch(VIEW3D_PT_HeadsUpPanel, bpy.typ
                 row.label(icon=icon_render)
 
                 # Add operator for selection 
-                op = row.operator("headsup_warnings.highlight_collection", text="", icon='BORDERMOVE')
+                op = row.operator("wm.headsup_highlight_collection", text="", icon='BORDERMOVE')
                 op.collection_name = col_name
 
 class VIEW3D_PT_HeadsUpPanel_Modifier_Mismatch(VIEW3D_PT_HeadsUpPanel, bpy.types.Panel):
@@ -278,7 +278,7 @@ class VIEW3D_PT_HeadsUpPanel_Modifier_Mismatch(VIEW3D_PT_HeadsUpPanel, bpy.types
 
                 # Add operator for selection only for visible box
                 if box_type == 'visible_box':
-                    op = row.operator("headsup_warnings.select_highlight", text="", icon='OUTLINER')
+                    op = row.operator("wm.headsup_select_highlight", text="", icon='OUTLINER')
                     op.object_name = obj.name
 
 class VIEW3D_PT_HeadsUpPanel_Undefined_Nodes(VIEW3D_PT_HeadsUpPanel, bpy.types.Panel):
