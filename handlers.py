@@ -42,7 +42,7 @@ from .properties import HEADSUP_Props
 #    28 Active Object: Array with relative Offset not first in stack
 #    29 Viewport: Hidden Object Types
 #    30 Viewport: Unselectable Object Types
-#    31 Render: Preview Range is used
+#    31 Animation: Preview Range is used
 #    32 Cycles: Render Device
 #    33 Active Object: Locked Transforms
 #    34 Active Object: Rig in Rest Position
@@ -105,15 +105,17 @@ def draw_warning_text():
             if header_region:
                 if header_region.alignment == 'BOTTOM':
                     header_bottom = True
-                    y_position = y_position + 27 * bpy.context.preferences.view.ui_scale
+                    if bpy.app.version >= (4, 0, 0):
+                        y_position = y_position + 27 * bpy.context.preferences.view.ui_scale
             shelf_region = next((region for region in area.regions if region.type == 'ASSET_SHELF'), None)
             if shelf_region:
                 if shelf_region.height > 1:
                     y_position = y_position + shelf_region.height + 27 * bpy.context.preferences.view.ui_scale
 
             if bpy.context.space_data is not None and bpy.context.space_data.show_region_header == False:
-                if header_bottom:
-                    y_position = y_position - 27 * bpy.context.preferences.view.ui_scale
+                if bpy.app.version >= (4, 0, 0):
+                    if header_bottom:
+                        y_position = y_position - 27 * bpy.context.preferences.view.ui_scale
             # Detection method that finally seems to work to find out if the HUD element (redo panel) is open or not
             hud_region = next((region for region in area.regions if region.type == 'HUD'), None) 
             if hud_region:
@@ -212,6 +214,7 @@ def draw_warning_text():
             if prefs.warn_4 and prefs.warn_4_a and bpy.context.scene.tool_settings.use_keyframe_insert_auto:
                 if bpy.context.mode == 'OBJECT' or bpy.context.mode == 'POSE':
                     draw_filled_red_circle()   
+                    draw_highlight_border(8, (1, 0, 0, 0.5))
         
             # "Fullscreen" Version warning in the center of the 3D View
             if prefs.warn_44_a and not HEADSUP_Props.saved_just_now:
@@ -1005,7 +1008,7 @@ def headsup_check_warnings(scene, depsgraph):
         if prefs.warn_31:
             if bpy.context.scene.use_preview_range:
                 if bpy.context.scene.frame_preview_start != bpy.context.scene.frame_start or bpy.context.scene.frame_preview_end != bpy.context.scene.frame_end:
-                    new_warnings.append(f"[Render Preview Range]: {bpy.context.scene.frame_preview_start}-{bpy.context.scene.frame_preview_end}!")
+                    new_warnings.append(f"[Preview Range]: {bpy.context.scene.frame_preview_start}-{bpy.context.scene.frame_preview_end}!")
                     setattr(props, "warn_info_31", True)
 
         if prefs.warn_32:
@@ -1059,8 +1062,9 @@ def headsup_check_warnings(scene, depsgraph):
                             new_warnings.append(override_material_string)
                     view_layer_list = []
                     for view_layer in bpy.context.scene.view_layers:
-                        if view_layer.world_override:
-                            view_layer_list.append(f"'{view_layer.name}'")
+                        if bpy.app.version >= (4, 3, 0):
+                            if view_layer.world_override:
+                                view_layer_list.append(f"'{view_layer.name}'")
                     if len(view_layer_list) > 0:
                             override_world_string = f"[World Override] for ViewLayer(s): {' | '.join(view_layer_list)}"
                             setattr(props, "warn_info_35", True)
@@ -1216,7 +1220,7 @@ def headsup_check_warnings(scene, depsgraph):
         
 def check_object_mismatches(check_objects):
     """Find objects with mismatched hide_render and hide_viewport statuses."""
-    SKIPPED_TYPES = {'CAMERA', 'IMAGE', 'LATTICE', 'ARMATURE', 'SPEAKER', 'FORCE_FIELD'}
+    SKIPPED_TYPES = {'CAMERA', 'EMPTY', 'LATTICE', 'ARMATURE', 'SPEAKER'}
 
     object_view_layer_map = {}
 
@@ -1249,7 +1253,10 @@ def check_object_mismatches(check_objects):
 
 def check_modifier_mismatches(check_objects):
     """Find objects with mismatched modifier visibility (show_viewport vs show_render)."""
-    CHECKED_TYPES = {'MESH', 'CURVE', 'LATTICE', 'FONT', 'GPENCIL'}
+    if bpy.app.version >= (4, 3, 0):
+        CHECKED_TYPES = {'MESH', 'CURVE', 'LATTICE', 'FONT', 'GREASEPENCIL'}
+    else:
+        CHECKED_TYPES = {'MESH', 'CURVE', 'LATTICE', 'FONT', 'GPENCIL'}
 
     mismatch_dict = {}
 
@@ -1468,8 +1475,7 @@ def register():
     register_draw_handler()
     subscribe_to_global_visibility_and_exclusion()
     bpy.app.handlers.depsgraph_update_post.append(headsup_check_warnings)
-    bpy.app.handlers.load_post.append(headsup_check_warnings)
-    bpy.app.handlers.load_factory_startup_post.append(headsup_check_warnings)
+    bpy.app.handlers.load_factory_startup_post.append(on_file_load)
     bpy.app.handlers.load_post.append(on_file_load)
     bpy.app.handlers.save_post.append(on_file_save)
     bpy.app.timers._startup_time = time.time()
@@ -1479,7 +1485,6 @@ def unregister():
     unregister_draw_handler()
     bpy.msgbus.clear_by_owner(subscribe_to_global_visibility_and_exclusion)
     bpy.app.handlers.depsgraph_update_post.remove(headsup_check_warnings)
-    bpy.app.handlers.load_post.remove(headsup_check_warnings)
-    bpy.app.handlers.load_factory_startup_post.remove(headsup_check_warnings)
+    bpy.app.handlers.load_factory_startup_post.remove(on_file_load)
     bpy.app.handlers.load_post.remove(on_file_load)
     bpy.app.handlers.save_post.remove(on_file_save)

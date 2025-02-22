@@ -171,7 +171,7 @@ class HEADSUP_Preferences(bpy.types.AddonPreferences):
     ) 
     
     warn_17: bpy.props.BoolProperty(
-        name="Shader: Img-Sequence not unique",
+        name="Material: Img-Sequence not unique",
         description="Warn me about Multiple Image Sequence Nodes using the same image datablock with different settings. This will not work",
         default=True,
         update=prop_update_callback
@@ -273,7 +273,7 @@ class HEADSUP_Preferences(bpy.types.AddonPreferences):
     )  
 
     warn_31: bpy.props.BoolProperty(
-        name="Render: Use Preview Range",
+        name="Animation: Use Preview Range",
         description="Warn me about an active preview range",
         default=True
     )  
@@ -301,7 +301,7 @@ class HEADSUP_Preferences(bpy.types.AddonPreferences):
     )  
 
     warn_34: bpy.props.BoolProperty(
-        name="Active Object: Armature is in Rest Position",
+        name="Active Object: Armature in Rest Position",
         description="Warn me about an active Rig being in Rest Position",
         default=True
     )  
@@ -393,7 +393,7 @@ class HEADSUP_Preferences(bpy.types.AddonPreferences):
     )  
 
     warn_45: bpy.props.BoolProperty(
-        name="Compositing: Renderlayer Node Issue",
+        name="Compositing: Renderlayer Node Issues",
         description="Show a warning for Renderlayer Node Issues, like missing Renderlayer nodes or muted savers",
         default=True,
     )
@@ -508,7 +508,7 @@ class HEADSUP_Preferences(bpy.types.AddonPreferences):
         row = box.row(align=True)
         row.prop(self, "original_theme_color")
         row = box.row(align=True)
-        row.operator("headsup_warnings.store_color", text="Store current theme color")
+        row.operator("wm.headsup_store_color", text="Store current theme color")
         row = box.row(align=True)
         row.label(text="Addon stores your correct theme color automatically. Use button after theme changes.")
 
@@ -529,6 +529,10 @@ class HEADSUP_Preferences(bpy.types.AddonPreferences):
         grid.prop(self, "warn_6")   # General: Affect Only
         grid.prop(self, "warn_7")   # General: Snapping
         grid.prop(self, "warn_19")  # General: Autopack Ressources
+        row = grid.row()
+        split = row.split(factor=0.8)
+        split.prop(self, "warn_32")  # Cycles: Not using 
+        split.prop(self, "warn_32_a")# CPU/GPU
         grid.prop(self, "warn_23")  # Render: Resolution not 100%
         grid.prop(self, "warn_12")  # Render: Render Border
         grid.prop(self, "warn_24")  # Render: Pixel Filter Size
@@ -546,20 +550,7 @@ class HEADSUP_Preferences(bpy.types.AddonPreferences):
         row = grid.row()
         split = row.split(factor=0.7)
         split.prop(self, "warn_27_a")  # Render: Samples lower than
-        split.prop(self, "sample_limit_upper") 
-        grid.prop(self, "warn_31")  # Render: Sample Override
-        grid.prop(self, "warn_41")  # Material: Undefined nodes
-        grid.prop(self, "warn_36")  # Compositing: Use Nodes
-        grid.prop(self, "warn_45")  # Compositing: Renderlayer Node Issues
-        grid.prop(self, "warn_11")  # Sequencer: Use Sequencer
-        row = grid.row()
-        split = row.split(factor=0.8)
-        split.prop(self, "warn_39")  # Sequencer: Audio louder than 
-        split.prop(self, "warn_39_a")# threshold
-        row = grid.row()
-        split = row.split(factor=0.8)
-        split.prop(self, "warn_32")  # Cycles: Not using 
-        split.prop(self, "warn_32_a")# CPU/GPU
+        split.prop(self, "sample_limit_upper")  
         grid.prop(self, "warn_2")   # Viewport: Visibility Mismatch
         row = grid.row()
         split = row.split(factor=0.8)
@@ -570,6 +561,14 @@ class HEADSUP_Preferences(bpy.types.AddonPreferences):
         grid.prop(self, "warn_21")  # Viewport: Clipping Border
         grid.prop(self, "warn_29")  # Viewport: Object Visibilities
         grid.prop(self, "warn_30")  # Viewport: Object Selectabilities
+        grid.prop(self, "warn_36")  # Compositing: Use Nodes
+        grid.prop(self, "warn_45")  # Compositing: Renderlayer Node Issues
+        grid.prop(self, "warn_11")  # Sequencer: Use Sequencer
+        row = grid.row()
+        split = row.split(factor=0.8)
+        split.prop(self, "warn_39")  # Sequencer: Audio louder than 
+        split.prop(self, "warn_39_a")# threshold
+        
         grid.prop(self, "warn_3")   # Sculpt: Shapekey
         grid.prop(self, "warn_18")  # Sculpt: Corrective
         grid.prop(self, "warn_14")  # UV: Select Sync
@@ -577,11 +576,13 @@ class HEADSUP_Preferences(bpy.types.AddonPreferences):
         grid.prop(self, "warn_16")  # UV: Correct Face Attributes
         grid.prop(self, "warn_9")   # Edit: Mirror Options
         grid.prop(self, "warn_13")  # Edit: Auto-Merge Vertices
-        grid.prop(self, "warn_17")  # Shader: Image Sequence Nodes
+        grid.prop(self, "warn_41")  # Material: Undefined nodes
+        grid.prop(self, "warn_17")  # Material: Image Sequence Nodes
         row = grid.row()
         split = row.split(factor=0.7)
         split.prop(self, "warn_4")  # Animation: Auto Keying
         split.prop(self, "warn_4_a")  
+        grid.prop(self, "warn_31")  # Animation: Preview Range
         grid.prop(self, "warn_22")  # Active Object: Shadow Catcher/Holdout
         grid.prop(self, "warn_28")  # Active Object: Relative Array
         grid.prop(self, "warn_33")  # Active Object: Locked Transforms

@@ -174,6 +174,7 @@ def draw_highlight_border(border_thickness, border_color=None):
 
 def draw_filled_red_circle():
     prefs = bpy.context.preferences.addons[__package__].preferences
+    active_obj = bpy.context.active_object
     if bpy.context.space_data is not None and bpy.context.space_data.type == 'VIEW_3D':
         if bpy.context.space_data.overlay.show_overlays:
             if bpy.app.version >= (4, 0, 0):
@@ -226,7 +227,20 @@ def draw_filled_red_circle():
                         if bpy.context.space_data.overlay.show_text:
                             y_pos = y_pos - 35 * bpy.context.preferences.view.ui_scale 
                         if bpy.context.space_data.overlay.show_stats:
-                            y_pos = y_pos - 100 * bpy.context.preferences.view.ui_scale 
+                            def type_exists(obj_type_name):
+                                return hasattr(bpy.types, obj_type_name)
+                            if active_obj:
+                                if any(type_exists(t) and active_obj.type == t for t in {'MESH', 'FONT', 'GREASEPENCIL'}):
+                                    y_pos -= 100 * bpy.context.preferences.view.ui_scale
+                                elif any(type_exists(t) and active_obj.type == t for t in {'CAMERA', 'CURVE', 'ARMATURE', 'META', 'EMPTY', 'SPEAKER', 'LIGHT_PROBE', 'SURFACE', 'VOLUME'}):
+                                    y_pos -= 30 * bpy.context.preferences.view.ui_scale
+                                elif any(type_exists(t) and active_obj.type == t for t in {'LIGHT'}):
+                                    y_pos -= 56
+                                if bpy.context.mode == 'POSE':  
+                                    y_pos -= 26
+                            else:
+                                y_pos -= 100 * bpy.context.preferences.view.ui_scale 
+
                         if is_in_ortho_view(bpy.context.space_data.region_3d):
                             y_pos = y_pos - 16 * bpy.context.preferences.view.ui_scale 
                         if bpy.context.scene.render.engine  == "CYCLES":
@@ -266,8 +280,6 @@ def draw_filled_red_circle():
 
             blf.draw(0, "[REC] (Auto-Keyframe)")
             blf.disable(0, blf.SHADOW)
-
-            draw_highlight_border(8, (1, 0, 0, 0.5))
 
 def draw_circular_gradient():
     """Draw a circular gradient over the 3D viewport."""
