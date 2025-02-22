@@ -114,6 +114,7 @@ class HEADSUP_OT_Select_Highlight_Collection(bpy.types.Operator):
                 for space in area.spaces:
                     if space.type == 'OUTLINER':
                         space.filter_text = name
+                        #space.use_filter_complete = True # This turns on 'Exact Match' in the Outliner, but it stays turned on which might be undesired...
                         space.show_restrict_column_holdout = True
                         space.show_restrict_column_viewport = True
                         space.show_restrict_column_render = True
