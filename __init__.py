@@ -20,7 +20,7 @@ bl_info = {
     "name": "HeadsUp Warnings",
     "description": "Temporarily change UI colors and overlay a text with warnings about potentially destructive Blender settings",
     "author": "Manuel Lüllau",
-    "version": (1, 0, 2),
+    "version": (1, 0, 4),
     "blender": (4, 2, 0),
     'location': 'Somewhere',
     'category': '3D View',
