@@ -77,8 +77,8 @@ def check_startup_time():
 def draw_warning_text():
     """Draw warning text in the 3D viewport if warn_state is True, with white text and brackets within [ ] and orange outside."""
     prefs = bpy.context.preferences.addons[__package__].preferences
-    x_position = 10
-    y_position = 10
+    x_position = 10  * bpy.context.preferences.view.ui_scale 
+    y_position = 10  * bpy.context.preferences.view.ui_scale 
     header_bottom = False
 
     if HEADSUP_Props.warn_state:
@@ -92,14 +92,14 @@ def draw_warning_text():
                 continue  # Skip if this is not the active area
             
             # Set default positions for each VIEW_3D area
-            x_position = 10
-            y_position = 10  # Reset y_position to 10 for each VIEW_3D area
+            x_position = 10  * bpy.context.preferences.view.ui_scale 
+            y_position = 10   * bpy.context.preferences.view.ui_scale # Reset y_position to 10 for each VIEW_3D area
 
             # Check for TOOLS region and set x_position if found
             tools_region = next((region for region in area.regions if region.type == 'TOOLS'), None)
             if tools_region:
                 toolshelf = tools_region.width
-                x_position = 9 + toolshelf 
+                x_position = 9 * bpy.context.preferences.view.ui_scale  + toolshelf 
             
             header_region = next((region for region in area.regions if region.type == 'HEADER'), None) 
             if header_region:

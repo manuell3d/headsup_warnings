@@ -175,111 +175,116 @@ def draw_highlight_border(border_thickness, border_color=None):
 def draw_filled_red_circle():
     prefs = bpy.context.preferences.addons[__package__].preferences
     active_obj = bpy.context.active_object
-    if bpy.context.space_data is not None and bpy.context.space_data.type == 'VIEW_3D':
-        if bpy.context.space_data.overlay.show_overlays:
-            if bpy.app.version >= (4, 0, 0):
-                RED_CIRCLE_SHADER = gpu.shader.from_builtin('SMOOTH_COLOR')
-            else:
-                RED_CIRCLE_SHADER = gpu.shader.from_builtin('2D_SMOOTH_COLOR')
 
-            # Define the circle vertices and colors for TRI_FAN
-            segments = 16
-            radius = 9 * bpy.context.preferences.view.ui_scale  # Radius in pixels
-            vertices = [(0, 0)]  # Center of the circle
-            colors = [(1.0, 0.0, 0.0, 1.0)]  # Red color for the center
+    for area in bpy.context.screen.areas:
+        if area.type != 'VIEW_3D':
+            continue  # Skip non-3D areas
 
-            vertices += [
-                (
-                    radius * math.cos(2 * math.pi * i / segments),
-                    radius * math.sin(2 * math.pi * i / segments)
-                )
-                for i in range(segments)
-            ]
-            colors += [(1.0, 0.0, 0.0, 0.0) for _ in range(segments)]  # Same red for all vertices
-            vertices.append(vertices[1])  # Close the circle
-            colors.append(colors[1])
-
-            # Create a batch for the filled circle
-            batch = batch_for_shader(RED_CIRCLE_SHADER, 'TRI_FAN', {"pos": vertices, "color": colors})
-            gpu.state.blend_set('ALPHA')
-
-            # Get viewport dimensions
-            viewport = gpu.state.viewport_get()
-            width, height = viewport[2], viewport[3]
-
-            # Position the circle in the top-left corner (with a margin)
-            margin = 40 * bpy.context.preferences.view.ui_scale 
-            
-            for area in bpy.context.screen.areas:
-                if area.type == 'VIEW_3D':
-                    tools_region = next((region for region in area.regions if region.type == 'TOOLS'), None)
-                    if tools_region:
-                        toolshelf = tools_region.width
-
-                        x_pos = 10 * bpy.context.preferences.view.ui_scale + radius + toolshelf   
-                        y_pos = height - 40 * bpy.context.preferences.view.ui_scale - radius
-                        if bpy.app.version >= (4, 0, 0):
-                            y_pos = y_pos - 25 * bpy.context.preferences.view.ui_scale 
-                        if not bpy.context.space_data.show_region_header:
-                            y_pos = y_pos + 25 * bpy.context.preferences.view.ui_scale
-                        if bpy.context.space_data.show_region_header and not bpy.context.space_data.show_region_tool_header: 
-                            y_pos = y_pos + 25 * bpy.context.preferences.view.ui_scale
-                        if bpy.context.space_data.overlay.show_text:
-                            y_pos = y_pos - 35 * bpy.context.preferences.view.ui_scale 
-                        if bpy.context.space_data.overlay.show_stats:
-                            def type_exists(obj_type_name):
-                                return hasattr(bpy.types, obj_type_name)
-                            if active_obj:
-                                if any(type_exists(t) and active_obj.type == t for t in {'MESH', 'FONT', 'GREASEPENCIL'}):
-                                    y_pos -= 100 * bpy.context.preferences.view.ui_scale
-                                elif any(type_exists(t) and active_obj.type == t for t in {'CAMERA', 'CURVE', 'ARMATURE', 'META', 'EMPTY', 'SPEAKER', 'LIGHT_PROBE', 'SURFACE', 'VOLUME'}):
-                                    y_pos -= 30 * bpy.context.preferences.view.ui_scale
-                                elif any(type_exists(t) and active_obj.type == t for t in {'LIGHT'}):
-                                    y_pos -= 56
-                                if bpy.context.mode == 'POSE':  
-                                    y_pos -= 26
-                            else:
-                                y_pos -= 100 * bpy.context.preferences.view.ui_scale 
-
-                        if is_in_ortho_view(bpy.context.space_data.region_3d):
-                            y_pos = y_pos - 16 * bpy.context.preferences.view.ui_scale 
-                        if bpy.context.scene.render.engine  == "CYCLES":
-                            if bpy.context.space_data.shading.type == 'RENDERED':
-                                y_pos = y_pos - 16 * bpy.context.preferences.view.ui_scale 
-                    header_region = next((region for region in area.regions if region.type == 'HEADER'), None) 
-                    if header_region:
-                        if header_region.alignment == 'BOTTOM':
-                            y_pos = y_pos + 27 * bpy.context.preferences.view.ui_scale
-
-            gpu.matrix.push()
-            gpu.matrix.load_identity()
-            gpu.matrix.translate((x_pos, y_pos, 0))  # Top-left corner position
-            RED_CIRCLE_SHADER.bind()
-            for i in range(1,14):
-                batch.draw(RED_CIRCLE_SHADER)
-            gpu.matrix.pop()
-            gpu.state.blend_set('NONE')
-
-
-            # Draw "REC" text next to the circle
-            text_margin = 4 * bpy.context.preferences.view.ui_scale # Distance between the circle and the text
-            text_x = x_pos + radius + text_margin
-            text_y = y_pos - 3 * bpy.context.preferences.view.ui_scale   # Slight adjustment to vertically center the text
+        # Ensure the text is drawn only in the active 3D viewport
+        if area != bpy.context.area:
+            continue  # Skip if this is not the active area
         
-            # Set the font and size
-            blf.position(0, text_x, text_y, 0)
-            blf.color(0, *prefs.highlight_color, 1.0)  # White text
-            # Enable shadow
-            blf.enable(0, blf.SHADOW)
-            if bpy.app.version >= (4,0,0):
-                blf.shadow_offset(0, 0, 0)  # Offset shadow
-                blf.shadow(0, 6, 0.0, 0.0, 0.0, 0.8)
-            else:
-                blf.shadow_offset(0, 1, -1)  # Offset shadow
-                blf.shadow(0, 3, 0.0, 0.0, 0.0, 0.9)  # Blur level and shadow color (black with 70% opacity)
+        if bpy.context.space_data is None:
+            continue
 
-            blf.draw(0, "[REC] (Auto-Keyframe)")
-            blf.disable(0, blf.SHADOW)
+        if prefs.toggle_with_overlays and not bpy.context.space_data.overlay.show_overlays:
+            continue
+
+        if bpy.app.version >= (4, 0, 0):
+            RED_CIRCLE_SHADER = gpu.shader.from_builtin('SMOOTH_COLOR')
+        else:
+            RED_CIRCLE_SHADER = gpu.shader.from_builtin('2D_SMOOTH_COLOR')
+
+        # Define the circle vertices and colors for TRI_FAN
+        segments = 16
+        radius = 9 * bpy.context.preferences.view.ui_scale  # Radius in pixels
+        vertices = [(0, 0)]  # Center of the circle
+        colors = [(1.0, 0.0, 0.0, 1.0)]  # Red color for the center
+
+        vertices += [
+            (
+                radius * math.cos(2 * math.pi * i / segments),
+                radius * math.sin(2 * math.pi * i / segments)
+            )
+            for i in range(segments)
+        ]
+        colors += [(1.0, 0.0, 0.0, 0.0) for _ in range(segments)]  # Same red for all vertices
+        vertices.append(vertices[1])  # Close the circle
+        colors.append(colors[1])
+
+        # Create a batch for the filled circle
+        batch = batch_for_shader(RED_CIRCLE_SHADER, 'TRI_FAN', {"pos": vertices, "color": colors})
+        gpu.state.blend_set('ALPHA')
+
+        # Set default positions for each VIEW_3D area
+        x_pos = 10 * bpy.context.preferences.view.ui_scale + radius
+        y_pos = area.height - 40 * bpy.context.preferences.view.ui_scale - radius  
+
+        # Check for TOOLS region and set x_position if found
+        tools_region = next((region for region in area.regions if region.type == 'TOOLS'), None)
+        if tools_region:
+            toolshelf = tools_region.width
+            x_pos = x_pos - 1 * bpy.context.preferences.view.ui_scale + toolshelf 
+        if bpy.app.version >= (4, 0, 0):
+            y_pos = y_pos - 25 * bpy.context.preferences.view.ui_scale 
+        if not bpy.context.space_data.show_region_header:
+            y_pos = y_pos + 50 * bpy.context.preferences.view.ui_scale
+        if bpy.context.space_data.show_region_header and not bpy.context.space_data.show_region_tool_header: 
+            y_pos = y_pos + 25 * bpy.context.preferences.view.ui_scale           
+        if bpy.context.space_data.overlay.show_text:
+            y_pos = y_pos - 35 * bpy.context.preferences.view.ui_scale 
+        if bpy.context.space_data.overlay.show_stats:
+            if active_obj:
+                if active_obj.type == 'MESH' or active_obj.type == 'FONT' or active_obj.type == 'GREASEPENCIL' or active_obj.type == 'GPENCIL':
+                    y_pos = y_pos - 100 * bpy.context.preferences.view.ui_scale
+                if active_obj.type == 'CAMERA' or active_obj.type == 'CURVE' or active_obj.type == 'ARMATURE' or active_obj.type == 'META' or active_obj.type == 'EMPTY' or active_obj.type == 'SPEAKER' or active_obj.type == 'LIGHT_PROBE' or active_obj.type ==  'SURFACE' or active_obj.type == 'VOLUME':
+                    y_pos = y_pos - 30 * bpy.context.preferences.view.ui_scale
+                if active_obj.type == 'LIGHT':
+                    y_pos = y_pos - 56 * bpy.context.preferences.view.ui_scale
+                if bpy.context.mode == 'POSE':  
+                    y_pos = y_pos - 26 * bpy.context.preferences.view.ui_scale
+            else:
+                y_pos = y_pos - 100 * bpy.context.preferences.view.ui_scale 
+
+        if is_in_ortho_view(bpy.context.space_data.region_3d):
+            y_pos = y_pos - 16 * bpy.context.preferences.view.ui_scale 
+        if bpy.context.scene.render.engine  == "CYCLES":
+            if bpy.context.space_data.shading.type == 'RENDERED':
+                y_pos = y_pos - 16 * bpy.context.preferences.view.ui_scale 
+        header_region = next((region for region in area.regions if region.type == 'HEADER'), None) 
+        if header_region:
+            if header_region.alignment == 'BOTTOM':
+                y_pos = y_pos + 27 * bpy.context.preferences.view.ui_scale
+
+        gpu.matrix.push()
+        gpu.matrix.load_identity()
+        gpu.matrix.translate((x_pos, y_pos, 0))  # Top-left corner position
+        RED_CIRCLE_SHADER.bind()
+        for i in range(1,14):
+            batch.draw(RED_CIRCLE_SHADER)
+        gpu.matrix.pop()
+        gpu.state.blend_set('NONE')
+
+
+        # Draw "REC" text next to the circle
+        text_margin = 4 * bpy.context.preferences.view.ui_scale # Distance between the circle and the text
+        text_x = x_pos + radius + text_margin
+        text_y = y_pos - 3 * bpy.context.preferences.view.ui_scale   # Slight adjustment to vertically center the text
+    
+        # Set the font and size
+        blf.position(0, text_x, text_y, 0)
+        blf.color(0, *prefs.highlight_color, 1.0)  # White text
+        # Enable shadow
+        blf.enable(0, blf.SHADOW)
+        if bpy.app.version >= (4,0,0):
+            blf.shadow_offset(0, 0, 0)  # Offset shadow
+            blf.shadow(0, 6, 0.0, 0.0, 0.0, 0.8)
+        else:
+            blf.shadow_offset(0, 1, -1)  # Offset shadow
+            blf.shadow(0, 3, 0.0, 0.0, 0.0, 0.9)  # Blur level and shadow color (black with 70% opacity)
+
+        blf.draw(0, "[REC] (Auto-Keyframe)")
+        blf.disable(0, blf.SHADOW)
 
 def draw_circular_gradient():
     """Draw a circular gradient over the 3D viewport."""
