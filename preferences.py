@@ -78,7 +78,7 @@ class HEADSUP_Preferences(bpy.types.AddonPreferences):
     
     warn_5: bpy.props.BoolProperty(
         name="General: Proportional Editing",
-        description="Warn me about 'Camera to View' being active, as it can be destructive and is not undo-able",
+        description="Warn me about Proportional Editing being active",
         default=True
     ) 
     
