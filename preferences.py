@@ -70,15 +70,32 @@ class HEADSUP_Preferences(bpy.types.AddonPreferences):
         default=True
     ) 
 
-    warn_4_a: bpy.props.BoolProperty(
-        name="⏺[REC]",
-        description="Add a red dot in the corner of the viewport",
-        default=True
-    ) 
+    # warn_4_a: bpy.props.BoolProperty(
+    #     name="⏺[REC]",
+    #     description="Add a red dot in the corner of the viewport",
+    #     default=True
+    # ) 
+
+    # warn_4_b: bpy.props.BoolProperty(
+    #     name="O",
+    #     description="Don't trigger a full warning, just show red dot and border",
+    #     default=False
+    # )
+
+    warn_4_a: bpy.props.EnumProperty(
+        name="",
+        description="Choose the overlay of a red dot in the corner of the viewport",
+        items=[
+            ('No ⏺[REC]', "No ⏺[REC]", "Warn me but don't show a red dot"),
+            ('⏺[REC]', "⏺[REC]", "Warn me and show a red dot and border"),
+            ('⏺[REC] only', "⏺[REC] only", "Don't trigger a full warning, just show red dot and border"),
+        ],
+        default='⏺[REC]'
+    )
     
     warn_5: bpy.props.BoolProperty(
         name="General: Proportional Editing",
-        description="Warn me about 'Camera to View' being active, as it can be destructive and is not undo-able",
+        description="Warn me about 'Proportional Editing' being active",
         default=True
     ) 
     
@@ -582,6 +599,7 @@ class HEADSUP_Preferences(bpy.types.AddonPreferences):
         split = row.split(factor=0.7)
         split.prop(self, "warn_4")  # Animation: Auto Keying
         split.prop(self, "warn_4_a")  
+        #split.prop(self, "warn_4_b")
         grid.prop(self, "warn_31")  # Animation: Preview Range
         grid.prop(self, "warn_22")  # Active Object: Shadow Catcher/Holdout
         grid.prop(self, "warn_28")  # Active Object: Relative Array

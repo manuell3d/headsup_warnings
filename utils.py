@@ -120,10 +120,9 @@ def rgb_to_rgba(rgb, alpha=1.0):
 
 def calculate_text_size(prefs):
     """Calculate the actual text size based on preferences and UI scaling."""
-    text_size = prefs.text_size if prefs else 11  # Default to 11 if preferences are missing
-    system_pixel_size = bpy.context.preferences.system.pixel_size
-    ui_scale = bpy.context.preferences.view.ui_scale
-    text_scale = system_pixel_size * ui_scale
+    text_size = prefs.text_size
+    text_scale = (bpy.context.preferences.system.dpi / 72)
+    #* (1 / bpy.context.preferences.system.pixel_size)
     return round(text_size * text_scale)
 
 def draw_highlight_border(border_thickness, border_color=None):
@@ -173,6 +172,7 @@ def draw_highlight_border(border_thickness, border_color=None):
     gpu.state.blend_set('NONE')
 
 def draw_filled_red_circle():
+    scale = (bpy.context.preferences.system.dpi / 72)
     prefs = bpy.context.preferences.addons[__package__].preferences
     active_obj = bpy.context.active_object
 
@@ -197,7 +197,7 @@ def draw_filled_red_circle():
 
         # Define the circle vertices and colors for TRI_FAN
         segments = 16
-        radius = 9 * bpy.context.preferences.view.ui_scale  # Radius in pixels
+        radius = 9 * scale  # Radius in pixels
         vertices = [(0, 0)]  # Center of the circle
         colors = [(1.0, 0.0, 0.0, 1.0)]  # Red color for the center
 
@@ -217,44 +217,44 @@ def draw_filled_red_circle():
         gpu.state.blend_set('ALPHA')
 
         # Set default positions for each VIEW_3D area
-        x_pos = 10 * bpy.context.preferences.view.ui_scale + radius
-        y_pos = area.height - 40 * bpy.context.preferences.view.ui_scale - radius  
+        x_pos = 10 * scale + radius
+        y_pos = area.height - 40 * scale - radius  
 
         # Check for TOOLS region and set x_position if found
         tools_region = next((region for region in area.regions if region.type == 'TOOLS'), None)
         if tools_region:
             toolshelf = tools_region.width
-            x_pos = x_pos - 1 * bpy.context.preferences.view.ui_scale + toolshelf 
+            x_pos = x_pos - 1 * scale + toolshelf 
         if bpy.app.version >= (4, 0, 0):
-            y_pos = y_pos - 25 * bpy.context.preferences.view.ui_scale 
+            y_pos = y_pos - 25 * scale 
         if not bpy.context.space_data.show_region_header:
-            y_pos = y_pos + 50 * bpy.context.preferences.view.ui_scale
+            y_pos = y_pos + 50 * scale
         if bpy.context.space_data.show_region_header and not bpy.context.space_data.show_region_tool_header: 
-            y_pos = y_pos + 25 * bpy.context.preferences.view.ui_scale           
+            y_pos = y_pos + 25 * scale           
         if bpy.context.space_data.overlay.show_text:
-            y_pos = y_pos - 35 * bpy.context.preferences.view.ui_scale 
+            y_pos = y_pos - 35 * scale 
         if bpy.context.space_data.overlay.show_stats:
             if active_obj:
                 if active_obj.type == 'MESH' or active_obj.type == 'FONT' or active_obj.type == 'GREASEPENCIL' or active_obj.type == 'GPENCIL':
-                    y_pos = y_pos - 100 * bpy.context.preferences.view.ui_scale
+                    y_pos = y_pos - 100 * scale
                 if active_obj.type == 'CAMERA' or active_obj.type == 'CURVE' or active_obj.type == 'ARMATURE' or active_obj.type == 'META' or active_obj.type == 'EMPTY' or active_obj.type == 'SPEAKER' or active_obj.type == 'LIGHT_PROBE' or active_obj.type ==  'SURFACE' or active_obj.type == 'VOLUME':
-                    y_pos = y_pos - 30 * bpy.context.preferences.view.ui_scale
+                    y_pos = y_pos - 30 * scale
                 if active_obj.type == 'LIGHT':
-                    y_pos = y_pos - 56 * bpy.context.preferences.view.ui_scale
+                    y_pos = y_pos - 56 * scale
                 if bpy.context.mode == 'POSE':  
-                    y_pos = y_pos - 26 * bpy.context.preferences.view.ui_scale
+                    y_pos = y_pos - 26 * scale
             else:
-                y_pos = y_pos - 100 * bpy.context.preferences.view.ui_scale 
+                y_pos = y_pos - 100 * scale 
 
         if is_in_ortho_view(bpy.context.space_data.region_3d):
-            y_pos = y_pos - 16 * bpy.context.preferences.view.ui_scale 
+            y_pos = y_pos - 16 * scale 
         if bpy.context.scene.render.engine  == "CYCLES":
             if bpy.context.space_data.shading.type == 'RENDERED':
-                y_pos = y_pos - 16 * bpy.context.preferences.view.ui_scale 
+                y_pos = y_pos - 16 * scale 
         header_region = next((region for region in area.regions if region.type == 'HEADER'), None) 
         if header_region:
             if header_region.alignment == 'BOTTOM':
-                y_pos = y_pos + 27 * bpy.context.preferences.view.ui_scale
+                y_pos = y_pos + 27 * scale
 
         gpu.matrix.push()
         gpu.matrix.load_identity()
@@ -267,9 +267,9 @@ def draw_filled_red_circle():
 
 
         # Draw "REC" text next to the circle
-        text_margin = 4 * bpy.context.preferences.view.ui_scale # Distance between the circle and the text
+        text_margin = 4 * scale # Distance between the circle and the text
         text_x = x_pos + radius + text_margin
-        text_y = y_pos - 3 * bpy.context.preferences.view.ui_scale   # Slight adjustment to vertically center the text
+        text_y = y_pos - 3 * scale   # Slight adjustment to vertically center the text
     
         # Set the font and size
         blf.position(0, text_x, text_y, 0)
@@ -356,8 +356,12 @@ def check_renderlayer_compositing_conditions():
         return False, False
 
     scene = bpy.context.scene
-    if not scene.render.use_compositing or not scene.use_nodes or scene.node_tree is None:
-        return []
+    if bpy.app.version < (5, 0, 0):
+        if not scene.render.use_compositing or not scene.use_nodes or scene.node_tree is None:
+            return []
+    else:
+        if not scene.render.use_compositing or scene.compositing_node_group is None:
+            return []
     
     node_tree = scene.node_tree
     compositor_nodes = node_tree.nodes

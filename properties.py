@@ -11,7 +11,7 @@ class HEADSUP_Props:
     old_warnings = []
     modifier_mismatches = set()
     system = bpy.context.preferences.system
-    dpi = int(system.dpi * system.pixel_size)
+    dpi = int(system.dpi * (1 / system.pixel_size))
     actual_text_size = 11
     object_mismatches = []
     collection_mismatches = []

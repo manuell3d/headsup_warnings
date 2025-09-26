@@ -74,13 +74,36 @@ def check_startup_time():
     # Continue the timer with a short delay if the condition is not yet met
     return 1  # Check again in 0.1 seconds 
 
+
+
 def draw_warning_text():
     """Draw warning text in the 3D viewport if warn_state is True, with white text and brackets within [ ] and orange outside."""
     prefs = bpy.context.preferences.addons[__package__].preferences
-    x_position = 10  * bpy.context.preferences.view.ui_scale 
-    y_position = 10  * bpy.context.preferences.view.ui_scale 
+    scale = (bpy.context.preferences.system.dpi / 72)
+    x_position = 10  * scale
+    y_position = 10  * scale 
     header_bottom = False
 
+    # This draws the REC overlay without a warning being triggered. 
+    if prefs.warn_4 and prefs.warn_4_a == '⏺[REC] only' and bpy.context.scene.tool_settings.use_keyframe_insert_auto:
+        # Calculate and set text size
+        HEADSUP_Props.actual_text_size = calculate_text_size(prefs)
+        if bpy.app.version >= (4, 0, 0):
+            blf.size(0, HEADSUP_Props.actual_text_size)
+        else: 
+            blf.size(0, HEADSUP_Props.actual_text_size, bpy.context.preferences.system.dpi)
+            
+        for area in bpy.context.screen.areas:
+            if area.type != 'VIEW_3D':
+                continue  # Skip non-3D areas
+            # Ensure the text is drawn only in the active 3D viewport
+            if area != bpy.context.area:
+                continue  # Skip if this is not the active area
+            if bpy.context.mode == 'OBJECT' or bpy.context.mode == 'POSE':
+                draw_filled_red_circle()   
+                draw_highlight_border(8, (1, 0, 0, 0.5))
+    
+    # 
     if HEADSUP_Props.warn_state:
         # Starting positions for text warnings, starting from lower left corner 
         for area in bpy.context.screen.areas:
@@ -92,39 +115,42 @@ def draw_warning_text():
                 continue  # Skip if this is not the active area
             
             # Set default positions for each VIEW_3D area
-            x_position = 10  * bpy.context.preferences.view.ui_scale 
-            y_position = 10   * bpy.context.preferences.view.ui_scale # Reset y_position to 10 for each VIEW_3D area
+            x_position = 10  * scale
+            y_position = 10  * scale # Reset y_position to 10 for each VIEW_3D area
 
             # Check for TOOLS region and set x_position if found
             tools_region = next((region for region in area.regions if region.type == 'TOOLS'), None)
             if tools_region:
                 toolshelf = tools_region.width
-                x_position = 9 * bpy.context.preferences.view.ui_scale  + toolshelf 
+                x_position = 9 * scale + toolshelf 
             
             header_region = next((region for region in area.regions if region.type == 'HEADER'), None) 
             if header_region:
                 if header_region.alignment == 'BOTTOM':
                     header_bottom = True
                     if bpy.app.version >= (4, 0, 0):
-                        y_position = y_position + 27 * bpy.context.preferences.view.ui_scale
+                        y_position = y_position + 27 * scale
             shelf_region = next((region for region in area.regions if region.type == 'ASSET_SHELF'), None)
             if shelf_region:
                 if shelf_region.height > 1:
-                    y_position = y_position + shelf_region.height + 27 * bpy.context.preferences.view.ui_scale
+                    y_position = y_position + shelf_region.height + 27 * scale
 
             if bpy.context.space_data is not None and bpy.context.space_data.show_region_header == False:
                 if bpy.app.version >= (4, 0, 0):
                     if header_bottom:
-                        y_position = y_position - 27 * bpy.context.preferences.view.ui_scale
+                        y_position = y_position - 27 * scale
             # Detection method that finally seems to work to find out if the HUD element (redo panel) is open or not
             hud_region = next((region for region in area.regions if region.type == 'HUD'), None) 
             if hud_region:
                 if tools_region:
                     if hud_region.x - area.x - toolshelf > 0:
-                        y_position = y_position + 25 * bpy.context.preferences.view.ui_scale
+                        y_position = y_position + 25 * scale
             
             HEADSUP_Props.warning_message = " , ".join(HEADSUP_Props.warnings) if HEADSUP_Props.warnings else ""
-            warning_message_full = f"HeadsUp: {HEADSUP_Props.warning_message}"
+            if HEADSUP_Props.warning_message == "":
+                warning_message_full = ""
+            else:
+                warning_message_full = f"HeadsUp: {HEADSUP_Props.warning_message}"
             
             # For viewport specific options, remove the warning text if it does not apply.
             if bpy.context.space_data is not None and bpy.context.space_data.type == 'VIEW_3D':
@@ -211,7 +237,7 @@ def draw_warning_text():
             warning_message_old = warning_message_full
 
 
-            if prefs.warn_4 and prefs.warn_4_a and bpy.context.scene.tool_settings.use_keyframe_insert_auto:
+            if prefs.warn_4 and prefs.warn_4_a == '⏺[REC]' and bpy.context.scene.tool_settings.use_keyframe_insert_auto:
                 if bpy.context.mode == 'OBJECT' or bpy.context.mode == 'POSE':
                     draw_filled_red_circle()   
                     draw_highlight_border(8, (1, 0, 0, 0.5))
@@ -267,6 +293,7 @@ def draw_warning_text():
             # Reset color to default after drawing
             blf.color(0, 1.0, 1.0, 1.0, 1.0)
             blf.disable(0, blf.SHADOW)
+    
         
 def draw_warning_text_comp():
     """Draw warning text in the compositor if warn_state is True, with white text and brackets within [ ] and orange outside."""
@@ -596,7 +623,7 @@ def headsup_check_warnings(scene, depsgraph):
                                     new_warnings.append(f"Active [Shape Key] is not 1.0! Set to: {round(active_shape_key.value, 3)}!")
                                     setattr(props, "warn_info_3", True)
         
-        if prefs.warn_4:
+        if prefs.warn_4 and not prefs.warn_4_a == '⏺[REC] only':
             if bpy.context.mode == 'OBJECT' or bpy.context.mode == 'POSE':
                 if bpy.context.scene.tool_settings.use_keyframe_insert_auto:
                     new_warnings.append("[Auto Keying] is ON!")
@@ -721,9 +748,19 @@ def headsup_check_warnings(scene, depsgraph):
         if prefs.warn_11:   
             if bpy.context.mode == 'OBJECT':         
                 if bpy.context.scene.render.use_sequencer:
-                    has_non_audio_strips = any(
-                        strip.type != 'SOUND' for strip in scene.sequence_editor.sequences_all
-                    ) if scene.sequence_editor else False
+                    if bpy.app.version < (5, 0, 0):
+                        has_non_audio_strips = any(
+                            strip.type != 'SOUND' for strip in scene.sequence_editor.sequences_all
+                        ) if scene.sequence_editor else False
+                    else:
+                        if any(area.type == 'SEQUENCE_EDITOR' for area in bpy.context.screen.areas):
+                            has_non_audio_strips = any(
+                                strip.type != 'SOUND' for strip in bpy.data.scenes[bpy.context.workspace.sequencer_scene.name].sequence_editor.strips
+                            ) if scene.sequence_editor else False
+                        else:
+                            has_non_audio_strips = any(
+                                strip.type != 'SOUND' for strip in scene.sequence_editor.strips
+                            ) if scene.sequence_editor else False
                     if has_non_audio_strips:
                         new_warnings.append("[Sequencer] is ON and contains Data!")
                         setattr(props, "warn_info_11", True)
@@ -1072,16 +1109,22 @@ def headsup_check_warnings(scene, depsgraph):
        
         if prefs.warn_36:
             if bpy.context.mode == 'OBJECT':
-                if bpy.context.scene.render.use_compositing and not bpy.context.scene.use_nodes:
-                    if bpy.context.scene.node_tree is not None:
-                        if len(bpy.context.scene.node_tree.nodes) > 0:
-                            new_warnings.append(f"[Compositor]: 'Use Nodes' is OFF, but contains nodes!")
-                            setattr(props, "warn_info_36", True)
+                if bpy.app.version < (5, 0, 0):
+                    if bpy.context.scene.render.use_compositing and not bpy.context.scene.use_nodes:
+                        if bpy.context.scene.node_tree is not None:
+                            if len(bpy.context.scene.node_tree.nodes) > 0:
+                                new_warnings.append(f"[Compositor]: 'Use Nodes' is OFF, but contains nodes!")
+                                setattr(props, "warn_info_36", True)
 
-                if not bpy.context.scene.render.use_compositing and bpy.context.scene.use_nodes:
-                    if bpy.context.scene.node_tree is not None:
-                        if len(bpy.context.scene.node_tree.nodes) > 0:
-                            new_warnings.append(f"[Compositor]: 'Use Nodes' is ON, but Postprocessing is OFF!")
+                    if not bpy.context.scene.render.use_compositing and bpy.context.scene.use_nodes:
+                        if bpy.context.scene.node_tree is not None:
+                            if len(bpy.context.scene.node_tree.nodes) > 0:
+                                new_warnings.append(f"[Compositor]: 'Use Nodes' is ON, but Postprocessing is OFF!")
+                                setattr(props, "warn_info_36", True)
+                else:
+                    if not bpy.context.scene.render.use_compositing:
+                        if  bpy.context.scene.compositing_node_group is not None:
+                            new_warnings.append(f"[Compositor]: has Compositing nodes, but Postprocessing is OFF!")
                             setattr(props, "warn_info_36", True)
 
         if prefs.warn_37:
@@ -1111,9 +1154,19 @@ def headsup_check_warnings(scene, depsgraph):
                         setattr(props, "warn_info_38", True)
 
         if prefs.warn_39:
-            has_loud_audio_strips = any(
-                strip.type == 'SOUND' and strip.volume > prefs.warn_39_a for strip in scene.sequence_editor.sequences_all
-            ) if scene.sequence_editor else False
+            if bpy.app.version < (5, 0, 0):
+                has_loud_audio_strips = any(
+                    strip.type == 'SOUND' and strip.volume > prefs.warn_39_a for strip in scene.sequence_editor.sequences_all
+                ) if scene.sequence_editor else False
+            else:
+                if any(area.type == 'SEQUENCE_EDITOR' for area in bpy.context.screen.areas):
+                    has_loud_audio_strips = any(
+                        strip.type == 'SOUND' and strip.volume > prefs.warn_39_a for strip in bpy.data.scenes[bpy.context.workspace.sequencer_scene.name].sequence_editor.strips
+                    ) if scene.sequence_editor else False
+                else:
+                    has_loud_audio_strips = any(
+                        strip.type == 'SOUND' and strip.volume > prefs.warn_39_a for strip in scene.sequence_editor.strips
+                    ) if scene.sequence_editor else False
             if has_loud_audio_strips:
                 new_warnings.append("[Sequencer] contains LOUD audio strip(s)!")
                 setattr(props, "warn_info_39", True)
@@ -1437,13 +1490,13 @@ def subscribe_to_global_visibility_and_exclusion():
         args=(),
         notify=on_material_change,
     )
-
-    bpy.msgbus.subscribe_rna(
-        key=(bpy.types.Scene, "use_nodes"),
-        owner=subscribe_to_global_visibility_and_exclusion,
-        args=(),
-        notify=compositor_callback,
-    )
+    if bpy.app.version < (5, 0, 0):
+        bpy.msgbus.subscribe_rna(
+            key=(bpy.types.Scene, "use_nodes"),
+            owner=subscribe_to_global_visibility_and_exclusion,
+            args=(),
+            notify=compositor_callback,
+        )
 
     bpy.msgbus.subscribe_rna(
         key=(bpy.types.RenderSettings, "use_compositing"),
