@@ -1273,13 +1273,16 @@ def headsup_check_warnings(scene, depsgraph):
         
 def check_object_mismatches(check_objects):
     """Find objects with mismatched hide_render and hide_viewport statuses."""
-    SKIPPED_TYPES = {'CAMERA', 'EMPTY', 'LATTICE', 'ARMATURE', 'SPEAKER'}
+    SKIPPED_TYPES = {'CAMERA', 'LATTICE', 'ARMATURE', 'SPEAKER'}
 
     object_view_layer_map = {}
 
     for obj in check_objects:
         if not obj or obj.type in SKIPPED_TYPES:
             continue
+        if obj.type == 'EMPTY':
+            if obj.instance_collection == None:
+                continue
 
         # Initialize the object in the map
         object_view_layer_map[obj] = []
