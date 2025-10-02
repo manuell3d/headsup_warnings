@@ -336,6 +336,18 @@ def draw_circular_gradient():
     # Restore the default blend state
     gpu.state.blend_set('NONE')
 
+def safe_setattr(target, attr, value):
+    """Safely set an attribute on an object if it exists."""
+    try:
+        setattr(target, attr, value)
+    except Exception as e:
+        def _apply():
+            try:
+                setattr(target, attr, value)
+            except Exception as inner_e:
+                print(f"Failed to set attribute '{attr}' on {target}: {inner_e}")
+        bpy.app.timers.register(_apply, first_interval=0.01)
+
 def check_renderlayer_compositing_conditions():
     def is_connected_to_file_output(node, visited):
         if node in visited:

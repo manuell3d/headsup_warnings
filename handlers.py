@@ -505,9 +505,9 @@ def headsup_check_warnings(scene, depsgraph):
     props = bpy.context.scene.HEADSUP_WarnInfoProperties
     
     # Reset all warn_info properties
-    setattr(props, "warn_info_custom", False)
+    safe_setattr(props, "warn_info_custom", False)
     for i in range(1, 47):  # From 1 to 46
-        setattr(props, f"warn_info_{i}", False)
+        safe_setattr(props, f"warn_info_{i}", False)
 
     for view_layer in bpy.context.scene.view_layers:
         current_state = view_layer.use
@@ -591,7 +591,7 @@ def headsup_check_warnings(scene, depsgraph):
                                     area_identifier = hash(space)
                                     if space.lock_camera:
                                         new_warnings.append(f"?{area_identifier}?[Camera to View] is ON!")
-                                        setattr(props, "warn_info_1", True)
+                                        safe_setattr(props, "warn_info_1", True)
 
         if prefs.warn_2:
             if len(check_objects) > 0:
@@ -601,13 +601,13 @@ def headsup_check_warnings(scene, depsgraph):
 
             if len(HEADSUP_Props.collection_mismatches) > 0 and len(HEADSUP_Props.object_mismatches) == 0:
                new_warnings.append(f"[Collection Render/Viewport Mismatch] check HeadsUp SidePanel")
-               setattr(props, "warn_info_2", True)
+               safe_setattr(props, "warn_info_2", True)
             if len(HEADSUP_Props.object_mismatches) > 0 and len(HEADSUP_Props.collection_mismatches) == 0:
                new_warnings.append(f"[Object Render/Viewport Mismatch] check HeadsUp SidePanel")
-               setattr(props, "warn_info_2", True)
+               safe_setattr(props, "warn_info_2", True)
             if len(HEADSUP_Props.object_mismatches) > 0 and len(HEADSUP_Props.collection_mismatches) > 0:
                new_warnings.append(f"[Object & Collection Render/Viewport Mismatches] check HeadsUp SidePanel")
-               setattr(props, "warn_info_2", True)
+               safe_setattr(props, "warn_info_2", True)
 
             if len(HEADSUP_Props.collection_mismatches) == 0:
                 HEADSUP_Props.collection_check_bool = False
@@ -621,23 +621,23 @@ def headsup_check_warnings(scene, depsgraph):
                                 active_shape_key = active_obj.data.shape_keys.key_blocks[active_shape_key_index]
                                 if round(active_shape_key.value, 3) != 1.0:
                                     new_warnings.append(f"Active [Shape Key] is not 1.0! Set to: {round(active_shape_key.value, 3)}!")
-                                    setattr(props, "warn_info_3", True)
+                                    safe_setattr(props, "warn_info_3", True)
         
         if prefs.warn_4 and not prefs.warn_4_a == '⏺[REC] only':
             if bpy.context.mode == 'OBJECT' or bpy.context.mode == 'POSE':
                 if bpy.context.scene.tool_settings.use_keyframe_insert_auto:
                     new_warnings.append("[Auto Keying] is ON!")
-                    setattr(props, "warn_info_4", True)
+                    safe_setattr(props, "warn_info_4", True)
         
         if prefs.warn_5:        
             if bpy.context.mode == 'EDIT_MESH':
                 if bpy.context.scene.tool_settings.use_proportional_edit:
                     new_warnings.append("[Proportional Editing (Edit Mode/UV)] is ON!")
-                    setattr(props, "warn_info_5", True)
+                    safe_setattr(props, "warn_info_5", True)
             if bpy.context.mode == 'OBJECT':    
                 if bpy.context.scene.tool_settings.use_proportional_edit_objects:
                     new_warnings.append("[Proportional Editing (Object Mode)] is ON!")
-                    setattr(props, "warn_info_5", True)
+                    safe_setattr(props, "warn_info_5", True)
             
             fcurve_checked = False
             for window in bpy.context.window_manager.windows:
@@ -646,7 +646,7 @@ def headsup_check_warnings(scene, depsgraph):
                     if area.type == 'GRAPH_EDITOR':
                         if bpy.context.scene.tool_settings.use_proportional_fcurve:
                             new_warnings.append("[Proportional Editing (Graph Editor)] is ON!")
-                            setattr(props, "warn_info_5", True)
+                            safe_setattr(props, "warn_info_5", True)
                         fcurve_checked = True
                         break  # Exit the areas loop for this screen
                 if fcurve_checked:
@@ -659,7 +659,7 @@ def headsup_check_warnings(scene, depsgraph):
                     if area.type == 'DOPESHEET_EDITOR':
                         if bpy.context.scene.tool_settings.use_proportional_action:
                             new_warnings.append("[Proportional Editing (Dopesheet)] is ON!")
-                            setattr(props, "warn_info_5", True)
+                            safe_setattr(props, "warn_info_5", True)
                         dopesheet_checked = True
                         break 
                 if dopesheet_checked:
@@ -669,25 +669,25 @@ def headsup_check_warnings(scene, depsgraph):
             if bpy.context.mode == 'OBJECT':
                 if bpy.context.scene.tool_settings.use_transform_data_origin:
                     new_warnings.append("[Affect Only >Origins<] is ON!")
-                    setattr(props, "warn_info_6", True)
+                    safe_setattr(props, "warn_info_6", True)
                             
                 if bpy.context.scene.tool_settings.use_transform_pivot_point_align:
                     new_warnings.append("[Affect Only >Locations<] is ON!")
-                    setattr(props, "warn_info_6", True)
+                    safe_setattr(props, "warn_info_6", True)
                     
                 if bpy.context.scene.tool_settings.use_transform_skip_children:
                     new_warnings.append("[Affect Only >Parents<] is ON!")
-                    setattr(props, "warn_info_6", True)
+                    safe_setattr(props, "warn_info_6", True)
    
         if prefs.warn_7:    
             if bpy.context.mode == 'OBJECT' or bpy.context.mode == 'EDIT_MESH':
                 if bpy.context.scene.tool_settings.use_snap:
                     new_warnings.append("[Snapping] is ON!")
-                    setattr(props, "warn_info_7", True)
+                    safe_setattr(props, "warn_info_7", True)
             if bpy.context.mode == 'EDIT_MESH':
                 if bpy.context.scene.tool_settings.use_snap_uv:
                     new_warnings.append("[Snapping (UV)] is ON!")
-                    setattr(props, "warn_info_7", True)
+                    safe_setattr(props, "warn_info_7", True)
 
         if prefs.warn_8:    
             if active_obj:
@@ -695,21 +695,21 @@ def headsup_check_warnings(scene, depsgraph):
                     if any(axis <= 0 for axis in bpy.context.object.scale):
                         if prefs.warn_8_a:
                             new_warnings.append("[Non-Uniform Scale (Zero or Negative Axis!)] for active Object!")
-                            setattr(props, "warn_info_8", True)
+                            safe_setattr(props, "warn_info_8", True)
                     else:
                         if prefs.warn_8_b and active_obj.type not in ("LIGHT","META","CAMERA","LIGHT_PROBE"):
                             new_warnings.append("[Non-Uniform Scale] for active Object!") 
-                            setattr(props, "warn_info_8", True)
+                            safe_setattr(props, "warn_info_8", True)
                 else: 
                     if bpy.context.object.scale[0] != 1.0: 
                         if bpy.context.object.scale[0] < 0:
                             if prefs.warn_8_a:
                                 new_warnings.append("[Negative Scale] for active Object!")
-                                setattr(props, "warn_info_8", True)
+                                safe_setattr(props, "warn_info_8", True)
                         else:
                             if prefs.warn_8_c and active_obj.type not in ("LIGHT","META","CAMERA","LIGHT_PROBE"): 
                                 new_warnings.append("[Scale is not 1] for active Object!")
-                                setattr(props, "warn_info_8", True)
+                                safe_setattr(props, "warn_info_8", True)
 
         if prefs.warn_9:            
             if bpy.context.mode != 'OBJECT':
@@ -730,7 +730,7 @@ def headsup_check_warnings(scene, depsgraph):
 
                     if mirror_warnings:
                         new_warnings.append(f"[Mirror {', '.join(mirror_warnings)}] is ON!")
-                        setattr(props, "warn_info_9", True)
+                        safe_setattr(props, "warn_info_9", True)
   
         if prefs.warn_10:        
             if bpy.context.mode == 'OBJECT':   
@@ -740,10 +740,10 @@ def headsup_check_warnings(scene, depsgraph):
                     if not prefs.warn_10_a:
                         if sub_v <= prefs.simplify_viewport and not sub_r <= prefs.simplify_render:
                             new_warnings.append(f"[Simplify] is ON! Viewport: {sub_v}, Render: {sub_r}")
-                            setattr(props, "warn_info_10", True)
+                            safe_setattr(props, "warn_info_10", True)
                     if sub_r <= prefs.simplify_render:
                         new_warnings.append(f"[Simplify] is ON! Render Subdivision is low: {sub_r}!")
-                        setattr(props, "warn_info_10", True)
+                        safe_setattr(props, "warn_info_10", True)
    
         if prefs.warn_11:   
             if bpy.context.mode == 'OBJECT':         
@@ -763,7 +763,7 @@ def headsup_check_warnings(scene, depsgraph):
                             ) if scene.sequence_editor else False
                     if has_non_audio_strips:
                         new_warnings.append("[Sequencer] is ON and contains Data!")
-                        setattr(props, "warn_info_11", True)
+                        safe_setattr(props, "warn_info_11", True)
        
         if prefs.warn_12:  
             if bpy.context.mode == 'OBJECT':                  
@@ -776,48 +776,48 @@ def headsup_check_warnings(scene, depsgraph):
                             new_warnings.append("[Render Border with Crop] is ON!")
                         else:
                             new_warnings.append("[Render Border] is ON!")
-                        setattr(props, "warn_info_12", True)
+                        safe_setattr(props, "warn_info_12", True)
         
         if prefs.warn_13:                
             if bpy.context.mode == 'EDIT_MESH':
                 if bpy.context.scene.tool_settings.use_mesh_automerge:
                     new_warnings.append("[Automerge Vertices] is ON!")
-                    setattr(props, "warn_info_13", True)
+                    safe_setattr(props, "warn_info_13", True)
         
         if prefs.warn_14:        
             if bpy.context.mode == 'EDIT_MESH':
                 if bpy.context.scene.tool_settings.use_uv_select_sync:
                     new_warnings.append("[UV Sync Selection] is ON!")
-                    setattr(props, "warn_info_14", True)
+                    safe_setattr(props, "warn_info_14", True)
         
         if prefs.warn_15:
             if bpy.context.mode == 'EDIT_MESH':        
                 if bpy.context.scene.tool_settings.use_edge_path_live_unwrap:
                     new_warnings.append("[Live Unwrap] is ON!")
-                    setattr(props, "warn_info_15", True)
+                    safe_setattr(props, "warn_info_15", True)
                     
         if prefs.warn_16:
             if bpy.context.mode == 'EDIT_MESH':    
                 if bpy.context.scene.tool_settings.use_transform_correct_face_attributes:
                     new_warnings.append("[Correct Face Attributes] is ON!(UVs change with Editmode Transforms)!")
-                    setattr(props, "warn_info_16", True)
+                    safe_setattr(props, "warn_info_16", True)
                 
         if prefs.warn_17:
             if multiple_sequence_nodes(check_materials):
                 new_warnings.append("Several [Image Sequence] nodes with different settings refer to the same datablock, expect issues!")
-                setattr(props, "warn_info_17", True)
+                safe_setattr(props, "warn_info_17", True)
         
         if prefs.warn_18:
             if active_obj and active_obj.type == 'MESH':
                 if bpy.context.mode == 'SCULPT':
                     if any(mod.type == 'CORRECTIVE_SMOOTH' and mod.show_viewport for mod in active_obj.modifiers):
                         new_warnings.append("Sculpting with an active [Corrective Smooth] modifier!")
-                        setattr(props, "warn_info_18", True)
+                        safe_setattr(props, "warn_info_18", True)
                              
         if prefs.warn_19:
             if bpy.context.blend_data.use_autopack:
                 new_warnings.append("[Autopack Ressources] is ON!")
-                setattr(props, "warn_info_19", True)
+                safe_setattr(props, "warn_info_19", True)
                 
         if prefs.warn_20:
             for window in bpy.context.window_manager.windows:
@@ -830,7 +830,7 @@ def headsup_check_warnings(scene, depsgraph):
                                     area_identifier = hash(space)
                                     if space.local_view:
                                         new_warnings.append(f"?{area_identifier}?[Local View] is ON!")
-                                        setattr(props, "warn_info_20", True)
+                                        safe_setattr(props, "warn_info_20", True)
 
         if prefs.warn_21:
             for window in bpy.context.window_manager.windows:
@@ -845,27 +845,27 @@ def headsup_check_warnings(scene, depsgraph):
                                         if region.type == 'WINDOW':
                                             if region.data.use_clip_planes == True:
                                                 new_warnings.append(f"?{area_identifier}?[Clipping Border] is ON! Alt+B to reset")
-                                                setattr(props, "warn_info_21", True)
+                                                safe_setattr(props, "warn_info_21", True)
                                 
         if prefs.warn_22:
             if bpy.context.mode == 'OBJECT':
                 if active_obj and active_obj.type == 'MESH':
                     if active_obj.is_shadow_catcher and not active_obj.is_holdout:
                         new_warnings.append("Active Object is [Shadow Catcher]") 
-                        setattr(props, "warn_info_22", True)
+                        safe_setattr(props, "warn_info_22", True)
                     if active_obj.is_holdout and not active_obj.is_shadow_catcher:
                         new_warnings.append("Active Object is [Holdout]")    
-                        setattr(props, "warn_info_22", True)
+                        safe_setattr(props, "warn_info_22", True)
                     if active_obj.is_holdout and active_obj.is_shadow_catcher:
                         new_warnings.append("Active Object is [Holdout & Shadow Catcher]") 
-                        setattr(props, "warn_info_22", True) 
+                        safe_setattr(props, "warn_info_22", True) 
                 
         if prefs.warn_23:
             if bpy.context.mode == 'OBJECT':
                 if bpy.context.scene.render.resolution_percentage != 100:
                     resolution_percentage = bpy.context.scene.render.resolution_percentage
                     new_warnings.append(f"[Render Resolution Percentage] is: {resolution_percentage}%!")
-                    setattr(props, "warn_info_23", True)
+                    safe_setattr(props, "warn_info_23", True)
                 
         if prefs.warn_24:
             if bpy.context.mode == 'OBJECT':
@@ -873,12 +873,12 @@ def headsup_check_warnings(scene, depsgraph):
                     if bpy.context.scene.cycles.filter_width != 1.5:
                         pixel_filter = round(bpy.context.scene.cycles.filter_width,2)
                         new_warnings.append(f"[Pixel Filter(Cycles)]: {pixel_filter} px!(Default 1.5px)")
-                        setattr(props, "warn_info_24", True)
+                        safe_setattr(props, "warn_info_24", True)
                 if bpy.context.scene.render.engine  == "BLENDER_EEVEE" or bpy.context.scene.render.engine == "BLENDER_EEVEE_NEXT":
                     if bpy.context.scene.render.filter_size != 1.5:
                         pixel_filter = round(bpy.context.scene.render.filter_size,2)
                         new_warnings.append(f"[Pixel Filter(EEVEE):] {pixel_filter} px!(Default 1.5px)")
-                        setattr(props, "warn_info_24", True)
+                        safe_setattr(props, "warn_info_24", True)
                                        
         if prefs.warn_25:
             if bpy.context.mode == 'OBJECT':
@@ -892,12 +892,12 @@ def headsup_check_warnings(scene, depsgraph):
                         if len(modifier_list) > 0:
                             modifier_string = " & ".join(sorted(modifier_list))
                             new_warnings.append(f"[Modifier Visibility Mismatch] for [{modifier_string}]")
-                            setattr(props, "warn_info_25", True)
+                            safe_setattr(props, "warn_info_25", True)
                 else:
                     HEADSUP_Props.modifier_mismatches = check_modifier_mismatches(check_objects)
                     if len(HEADSUP_Props.modifier_mismatches) > 0:
                         new_warnings.append(f"[Modifier Render/Viewport Mismatch] check HeadsUp SidePanel")
-                        setattr(props, "warn_info_25", True)
+                        safe_setattr(props, "warn_info_25", True)
 
         if prefs.warn_26:
             if bpy.context.mode == 'OBJECT':
@@ -909,7 +909,7 @@ def headsup_check_warnings(scene, depsgraph):
                     
                     if len(view_layer_list) > 0:
                         override_sample_string = f"[Sample Override] for ViewLayer(s): {' | '.join(view_layer_list)}"
-                        setattr(props, "warn_info_26", True)
+                        safe_setattr(props, "warn_info_26", True)
                         new_warnings.append(override_sample_string)
 
 
@@ -919,22 +919,22 @@ def headsup_check_warnings(scene, depsgraph):
                 if bpy.context.scene.render.engine  == "CYCLES":
                     if bpy.context.scene.cycles.samples <= prefs.sample_limit_lower :
                         new_warnings.append(f"[Low Samples(Cycles)]: {bpy.context.scene.cycles.samples} samples!")
-                        setattr(props, "warn_info_27", True)
+                        safe_setattr(props, "warn_info_27", True)
                 if bpy.context.scene.render.engine == "BLENDER_EEVEE":
                     if bpy.context.scene.eevee.taa_render_samples <= prefs.sample_limit_lower :
                         new_warnings.append(f"[Low Samples(EEVEE)]: {bpy.context.scene.eevee.taa_render_samples} samples!")
-                        setattr(props, "warn_info_27", True)
+                        safe_setattr(props, "warn_info_27", True)
                 
         if prefs.warn_27_a:
             if bpy.context.mode == 'OBJECT':
                 if bpy.context.scene.render.engine  == "CYCLES":
                     if bpy.context.scene.cycles.samples >= prefs.sample_limit_upper :
                         new_warnings.append(f"[High Samples(Cycles)]: {bpy.context.scene.cycles.samples} samples!")
-                        setattr(props, "warn_info_27", True)
+                        safe_setattr(props, "warn_info_27", True)
                 if bpy.context.scene.render.engine == "BLENDER_EEVEE":
                     if bpy.context.scene.eevee.taa_render_samples >= prefs.sample_limit_upper :
                         new_warnings.append(f"[High Samples(EEVEE)]: {bpy.context.scene.eevee.taa_render_samples} samples!")
-                        setattr(props, "warn_info_27", True)
+                        safe_setattr(props, "warn_info_27", True)
                                                        
         if prefs.warn_28:
             if bpy.context.mode == 'OBJECT':
@@ -944,7 +944,7 @@ def headsup_check_warnings(scene, depsgraph):
                         if mod.type == 'ARRAY' and mod.use_relative_offset:
                             if i != 0:
                                 new_warnings.append(f"Modifiers before [Array] with Relative Offset!")
-                                setattr(props, "warn_info_28", True)
+                                safe_setattr(props, "warn_info_28", True)
 
         if prefs.warn_29:
             for window in bpy.context.window_manager.windows:
@@ -992,7 +992,7 @@ def headsup_check_warnings(scene, depsgraph):
                                     visibilities_string = ", ".join(sorted(visibilities_list)) if visibilities_list else ""
                                     if visibilities_list:
                                         new_warnings.append(f"?{area_identifier}?[Viewport doesn't show: {visibilities_string}]")
-                                        setattr(props, "warn_info_29", True)
+                                        safe_setattr(props, "warn_info_29", True)
 
         if prefs.warn_30:
             for window in bpy.context.window_manager.windows:
@@ -1040,13 +1040,13 @@ def headsup_check_warnings(scene, depsgraph):
                                     selectabilities_string = ", ".join(sorted(selectabilities_list)) if selectabilities_list else ""
                                     if selectabilities_list:
                                         new_warnings.append(f"?{area_identifier}?[Viewport can't select: {selectabilities_string}]")
-                                        setattr(props, "warn_info_30", True)
+                                        safe_setattr(props, "warn_info_30", True)
 
         if prefs.warn_31:
             if bpy.context.scene.use_preview_range:
                 if bpy.context.scene.frame_preview_start != bpy.context.scene.frame_start or bpy.context.scene.frame_preview_end != bpy.context.scene.frame_end:
                     new_warnings.append(f"[Preview Range]: {bpy.context.scene.frame_preview_start}-{bpy.context.scene.frame_preview_end}!")
-                    setattr(props, "warn_info_31", True)
+                    safe_setattr(props, "warn_info_31", True)
 
         if prefs.warn_32:
             if bpy.context.mode == 'OBJECT':
@@ -1054,11 +1054,11 @@ def headsup_check_warnings(scene, depsgraph):
                     if prefs.warn_32_a == 'GPU':
                         if bpy.context.scene.cycles.device == 'CPU':
                             new_warnings.append(f"[Cycles not using GPU]")
-                            setattr(props, "warn_info_32", True)
+                            safe_setattr(props, "warn_info_32", True)
                     else:
                         if bpy.context.scene.cycles.device == 'GPU':
                             new_warnings.append(f"[Cycles not using CPU]")
-                            setattr(props, "warn_info_32", True)
+                            safe_setattr(props, "warn_info_32", True)
 
         if prefs.warn_33:
             if active_obj and bpy.context.mode == 'OBJECT':
@@ -1066,25 +1066,25 @@ def headsup_check_warnings(scene, depsgraph):
                 if any(bpy.context.object.lock_scale):
                     locked_axes = ",".join(axis for axis, locked in zip("XYZ", bpy.context.object.lock_scale) if locked)
                     lock_warnings.append(f"Scale({locked_axes})")
-                    setattr(props, "warn_info_33", True)
+                    safe_setattr(props, "warn_info_33", True)
                 if any(bpy.context.object.lock_location):
                     locked_axes = ",".join(axis for axis, locked in zip("XYZ", bpy.context.object.lock_location) if locked)
                     lock_warnings.append(f"Location({locked_axes})")
-                    setattr(props, "warn_info_33", True)
+                    safe_setattr(props, "warn_info_33", True)
                 if any(bpy.context.object.lock_rotation):
                     locked_axes = ",".join(axis for axis, locked in zip("XYZ", bpy.context.object.lock_rotation) if locked)
                     lock_warnings.append(f"Rotation({locked_axes})")
-                    setattr(props, "warn_info_33", True)
+                    safe_setattr(props, "warn_info_33", True)
                 if len(lock_warnings) > 0:
                     lock_message = ", ".join(lock_warnings)
                     new_warnings.append(f"[Lock {lock_message}] for Active Object")
-                    setattr(props, "warn_info_33", True)
+                    safe_setattr(props, "warn_info_33", True)
 
         if prefs.warn_34:
             if active_obj and active_obj.type == 'ARMATURE':
                 if active_obj.data.pose_position == 'REST':
                     new_warnings.append(f"Active Rig is in [Rest Position]")
-                    setattr(props, "warn_info_34", True)
+                    safe_setattr(props, "warn_info_34", True)
 
         if prefs.warn_35:
             if bpy.context.scene.render.engine  == "CYCLES":
@@ -1095,7 +1095,7 @@ def headsup_check_warnings(scene, depsgraph):
                             view_layer_list.append(f"'{view_layer.name}'")
                     if len(view_layer_list) > 0:
                             override_material_string = f"[Material Override] for ViewLayer(s): {' | '.join(view_layer_list)}"
-                            setattr(props, "warn_info_35", True)
+                            safe_setattr(props, "warn_info_35", True)
                             new_warnings.append(override_material_string)
                     view_layer_list = []
                     for view_layer in bpy.context.scene.view_layers:
@@ -1104,7 +1104,7 @@ def headsup_check_warnings(scene, depsgraph):
                                 view_layer_list.append(f"'{view_layer.name}'")
                     if len(view_layer_list) > 0:
                             override_world_string = f"[World Override] for ViewLayer(s): {' | '.join(view_layer_list)}"
-                            setattr(props, "warn_info_35", True)
+                            safe_setattr(props, "warn_info_35", True)
                             new_warnings.append(override_world_string)
        
         if prefs.warn_36:
@@ -1114,31 +1114,31 @@ def headsup_check_warnings(scene, depsgraph):
                         if bpy.context.scene.node_tree is not None:
                             if len(bpy.context.scene.node_tree.nodes) > 0:
                                 new_warnings.append(f"[Compositor]: 'Use Nodes' is OFF, but contains nodes!")
-                                setattr(props, "warn_info_36", True)
+                                safe_setattr(props, "warn_info_36", True)
 
                     if not bpy.context.scene.render.use_compositing and bpy.context.scene.use_nodes:
                         if bpy.context.scene.node_tree is not None:
                             if len(bpy.context.scene.node_tree.nodes) > 0:
                                 new_warnings.append(f"[Compositor]: 'Use Nodes' is ON, but Postprocessing is OFF!")
-                                setattr(props, "warn_info_36", True)
+                                safe_setattr(props, "warn_info_36", True)
                 else:
                     if not bpy.context.scene.render.use_compositing:
                         if  bpy.context.scene.compositing_node_group is not None:
                             new_warnings.append(f"[Compositor]: has Compositing nodes, but Postprocessing is OFF!")
-                            setattr(props, "warn_info_36", True)
+                            safe_setattr(props, "warn_info_36", True)
 
         if prefs.warn_37:
             if bpy.context.mode == 'OBJECT':
                 try:
                     if bpy.context.scene.render.image_settings.file_format == 'FFMPEG': 
                         new_warnings.append(f"[File Output] is set to FFMPEG video!")
-                        setattr(props, "warn_info_37", True)
+                        safe_setattr(props, "warn_info_37", True)
                     if bpy.context.scene.render.image_settings.file_format == 'AVI_RAW':
                         new_warnings.append(f"[File Output] is set to AVI_RAW video!")
-                        setattr(props, "warn_info_37", True)
+                        safe_setattr(props, "warn_info_37", True)
                     if bpy.context.scene.render.image_settings.file_format == 'AVI_JPEG': 
                         new_warnings.append(f"[File Output] is set to AVI_JPEG video!")
-                        setattr(props, "warn_info_37", True)
+                        safe_setattr(props, "warn_info_37", True)
                 except:
                     print("HeadUp: Skipping File Output Check")
 
@@ -1147,11 +1147,11 @@ def headsup_check_warnings(scene, depsgraph):
                 if prefs.warn_38_a == "OFF":
                     if not bpy.context.scene.render.film_transparent: 
                         new_warnings.append(f"[Film 'Transparent'] is OFF!")
-                        setattr(props, "warn_info_38", True)
+                        safe_setattr(props, "warn_info_38", True)
                 else:
                     if bpy.context.scene.render.film_transparent:
                         new_warnings.append(f"[Film 'Transparent'] is ON!")
-                        setattr(props, "warn_info_38", True)
+                        safe_setattr(props, "warn_info_38", True)
 
         if prefs.warn_39:
             if bpy.app.version < (5, 0, 0):
@@ -1169,7 +1169,7 @@ def headsup_check_warnings(scene, depsgraph):
                     ) if scene.sequence_editor else False
             if has_loud_audio_strips:
                 new_warnings.append("[Sequencer] contains LOUD audio strip(s)!")
-                setattr(props, "warn_info_39", True)
+                safe_setattr(props, "warn_info_39", True)
 
         if prefs.warn_40:
             if bpy.context.mode == 'OBJECT':
@@ -1178,10 +1178,10 @@ def headsup_check_warnings(scene, depsgraph):
                         if modifier.show_render:
                             if modifier.type == 'SUBSURF' and modifier.render_levels < modifier.levels:
                                 new_warnings.append(f"[{modifier.name}] Render subdivisions lower than viewport")
-                                setattr(props, "warn_info_40", True)
+                                safe_setattr(props, "warn_info_40", True)
                             if modifier.type == 'MULTIRES' and modifier.render_levels < modifier.levels:
                                 new_warnings.append(f"[{modifier.name}] Render subdivisions lower than viewport")
-                                setattr(props, "warn_info_40", True)
+                                safe_setattr(props, "warn_info_40", True)
 
         if prefs.warn_41:
             HEADSUP_Props.undefined_nodes = []
@@ -1194,7 +1194,7 @@ def headsup_check_warnings(scene, depsgraph):
                         HEADSUP_Props.problematic_materials.add(material)
             if HEADSUP_Props.undefined_nodes and bpy.context.mode == 'OBJECT':
                 new_warnings.append(f"[Undefined Nodes found] check HeadsUp SidePanel")
-                setattr(props, "warn_info_41", True)
+                safe_setattr(props, "warn_info_41", True)
 
         if prefs.warn_42:
             missing_files = False
@@ -1206,7 +1206,7 @@ def headsup_check_warnings(scene, depsgraph):
                     abs_path = abs_path.replace("<UDIM>", "1001")
                     if not os.path.exists(abs_path):
                         new_warnings.append(f"[Missing Textures] found")
-                        setattr(props, "warn_info_42", True)
+                        safe_setattr(props, "warn_info_42", True)
                         break                
 
         if prefs.warn_43:
@@ -1217,21 +1217,21 @@ def headsup_check_warnings(scene, depsgraph):
                     broken_libraries.append(library.filepath)
             if broken_libraries:
                 new_warnings.append(f"[Missing Libraries] found")
-                setattr(props, "warn_info_43", True)
+                safe_setattr(props, "warn_info_43", True)
 
         if prefs.warn_44:
             if not HEADSUP_Props.saved_just_now:
                 if bpy.app.version_file[:2] != bpy.data.version[:2]:
                     if not bpy.data.filepath == '':
                         new_warnings.append(f"[Blender Version] File was last saved with Blender {bpy.data.version[0]}.{bpy.data.version[1]}!")
-                        setattr(props, "warn_info_44", True)
+                        safe_setattr(props, "warn_info_44", True)
 
         if prefs.warn_45:
             if HEADSUP_Props.compositor_check_bool:
                 compositor_warnings = check_renderlayer_compositing_conditions()
                 if compositor_warnings:
                     new_warnings.append(f"[Compositor]: {', '.join(set(compositor_warnings))}")
-                    setattr(props, "warn_info_45", True)
+                    safe_setattr(props, "warn_info_45", True)
                     HEADSUP_Props.compositor_check_bool = True
                 else:
                     HEADSUP_Props.compositor_check_bool = False
@@ -1239,7 +1239,7 @@ def headsup_check_warnings(scene, depsgraph):
         if prefs.warn_46:
             if active_obj and active_obj.show_in_front:
                 new_warnings.append(f"Active Object is [In Front]")
-                setattr(props, "warn_info_46", True)
+                safe_setattr(props, "warn_info_46", True)
 
         if prefs.custom_warn:
             for text_block in bpy.data.texts:
@@ -1248,7 +1248,7 @@ def headsup_check_warnings(scene, depsgraph):
                     if first_line.lower().startswith("headsup:"):
                         message = first_line[8:].strip()  # Skip the first 8 characters ("Headsup:")
                         new_warnings.append(f"[CUSTOM] {message}")
-                        setattr(props, "warn_info_custom", True)
+                        safe_setattr(props, "warn_info_custom", True)
         
         if new_warnings != HEADSUP_Props.warnings:
             HEADSUP_Props.warnings = new_warnings
