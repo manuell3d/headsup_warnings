@@ -313,6 +313,12 @@ class HEADSUP_WarnInfoProperties(bpy.types.PropertyGroup):
         description="The Active Object is set to 'In Front', being shown in Front of all other objects in the 3D viewport. This might be confusing sometimes. ▶▶▶ Go to Object Properties → Viewport Display → 'In Front' ",
         default=False
     )
+    #    46 Active Object: In Front
+    warn_info_47: bpy.props.BoolProperty(
+        name="Active Object: In Front",
+        description="The Active Object is set to 'In Front', being shown in Front of all other objects in the 3D viewport. This might be confusing sometimes. ▶▶▶ Go to Object Properties → Viewport Display → 'In Front' ",
+        default=False
+    )
 #    Custom: Custom Text
     warn_info_custom: bpy.props.BoolProperty(
         name="CUSTOM Warning",

@@ -489,10 +489,11 @@ def headsup_check_warnings(scene, depsgraph):
         
     scene = bpy.context.scene
     if bpy.app.version >= (4, 2):
-        if len(bpy.context.window.modal_operators) > 0:
-            if HEADSUP_Props.load_up_done:
-                HEADSUP_Props.load_up_done = False
-            return
+        if bpy.context.window is not None:
+            if len(bpy.context.window.modal_operators) > 0:
+                if HEADSUP_Props.load_up_done:
+                    HEADSUP_Props.load_up_done = False
+                return
 
     if bpy.context.screen and bpy.context.screen.is_animation_playing:
         if HEADSUP_Props.load_up_done:
