@@ -1,7 +1,7 @@
 schema_version = "1.0.0"
 
 id = "headsup_warnings"
-version = "1.0.8"
+version = "1.1.0"
 name = "HeadsUp Warnings"
 tagline = "Display UI warnings to avoid and resolve common mistakes"
 maintainer = "Manuel Lüllau"
