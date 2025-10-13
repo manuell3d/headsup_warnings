@@ -507,7 +507,7 @@ def headsup_check_warnings(scene, depsgraph):
     
     # Reset all warn_info properties
     safe_setattr(props, "warn_info_custom", False)
-    for i in range(1, 47):  # From 1 to 46
+    for i in range(1, 52):  # Adjust the range as needed
         safe_setattr(props, f"warn_info_{i}", False)
 
     for view_layer in bpy.context.scene.view_layers:
@@ -1241,6 +1241,55 @@ def headsup_check_warnings(scene, depsgraph):
             if active_obj and active_obj.show_in_front:
                 new_warnings.append(f"Active Object is [In Front]")
                 safe_setattr(props, "warn_info_46", True)
+
+        if prefs.warn_47:
+           if active_obj and active_obj.show_texture_space:
+                new_warnings.append(f"Active Object has [Texture Space] visible")
+                safe_setattr(props, "warn_info_47", True)
+
+        if prefs.warn_48:
+            if active_obj and active_obj.type not in {'LIGHT', 'CAMERA', 'SPEAKER'}:
+                if active_obj.display_type == 'WIRE': 
+                    new_warnings.append(f"Active Object in [Wireframe Display Mode]")
+                    safe_setattr(props, "warn_info_48", True)
+                if active_obj.display_type == 'BOUNDS':
+                    new_warnings.append(f"Active Object in [Bounds Display Mode]")
+                    safe_setattr(props, "warn_info_48", True)
+        
+        if prefs.warn_49:  
+            if active_obj and active_obj.type == 'EMPTY' and active_obj.instance_type != None:
+                new_warnings.append(f"Active Object has [Collection Instance] enabled")
+                safe_setattr(props, "warn_info_49", True)
+        
+        if prefs.warn_50:  
+            if bpy.context.mode == 'OBJECT':
+                if active_obj and active_obj.instance_type != None and active_obj.type in {'MESH', 'FONT'}:
+                    if active_obj.instance_type == 'FACES':
+                        new_warnings.append(f"Active Object has [Face Instance] enabled")
+                        safe_setattr(props, "warn_info_50", True)
+                    if active_obj.instance_type == 'VERTS':
+                        new_warnings.append(f"Active Object has [Vertice Instance] enabled")
+                        safe_setattr(props, "warn_info_50", True)
+
+        if prefs.warn_51:
+            if bpy.context.mode == 'OBJECT':
+                if active_obj and active_obj.type == 'MESH':
+                    if active_obj.show_only_shape_key:
+                        new_warnings.append("Active Object has [Solo Active Shape Key] enabled")
+                        safe_setattr(props, "warn_info_51", True)
+
+        if prefs.warn_52:
+            if bpy.context.mode == 'EDIT_MESH':
+                if active_obj.data.shape_keys and len(active_obj.data.shape_keys.key_blocks) > 1 and active_obj.use_shape_key_edit_mode:
+                    if active_obj.active_shape_key:
+                        if active_obj.active_shape_key.value == 1.0:
+                            new_warnings.append("Active Object has [Shape Key Edit Mode] enabled")
+                        else:
+                            new_warnings.append("Active Object has [Shape Key Edit Mode] enabled, but active Shape Key value is not 1.0")
+                        safe_setattr(props, "warn_info_52", True)
+
+                
+
 
         if prefs.custom_warn:
             for text_block in bpy.data.texts:

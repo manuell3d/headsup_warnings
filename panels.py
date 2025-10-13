@@ -35,7 +35,7 @@ class VIEW3D_PT_HeadsUpPanel_HeadsUp_Warnings(VIEW3D_PT_HeadsUpPanel, bpy.types.
         row.label(text="Read tooltips for more info", icon='INFO')
         row = layout.row()
         box=row.box()
-        for i in range(1, 47):
+        for i in range(1, 52):
             prop_name = f"warn_info_{i}"
             
             if getattr(props, prop_name, None):  

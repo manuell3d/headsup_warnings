@@ -251,6 +251,14 @@ def draw_filled_red_circle():
         if bpy.context.scene.render.engine  == "CYCLES":
             if bpy.context.space_data.shading.type == 'RENDERED':
                 y_pos = y_pos - 16 * scale 
+        if bpy.context.scene.render.engine  == "BLENDER_EEVEE" or bpy.context.scene.render.engine  == "BLENDER_EEVEE_NEXT":
+            if bpy.context.space_data.shading.type == 'RENDERED':
+                if bpy.context.space_data.shading.use_compositor == 'DISABLED':
+                    y_pos = y_pos - 16 * scale
+                else:
+                    y_pos = y_pos - 32 * scale
+
+        
         header_region = next((region for region in area.regions if region.type == 'HEADER'), None) 
         if header_region:
             if header_region.alignment == 'BOTTOM':

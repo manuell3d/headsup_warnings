@@ -313,12 +313,44 @@ class HEADSUP_WarnInfoProperties(bpy.types.PropertyGroup):
         description="The Active Object is set to 'In Front', being shown in Front of all other objects in the 3D viewport. This might be confusing sometimes. ▶▶▶ Go to Object Properties → Viewport Display → 'In Front' ",
         default=False
     )
-    #    46 Active Object: In Front
+#    47 Active Object: Visible Texture Space
     warn_info_47: bpy.props.BoolProperty(
-        name="Active Object: In Front",
-        description="The Active Object is set to 'In Front', being shown in Front of all other objects in the 3D viewport. This might be confusing sometimes. ▶▶▶ Go to Object Properties → Viewport Display → 'In Front' ",
+        name="Active Object: Visible Texture Space",
+        description="The Active Object is set to show its Texture Space in the viewport. This might be confusing sometimes. ▶▶▶ Go to Object Properties → Viewport Display → 'Texture Space'",
         default=False
     )
+#    48 Active Object: Wireframe Display
+    warn_info_48: bpy.props.BoolProperty(
+        name="Active Object: Wireframe Display",
+        description="The Active Object is set to 'Wireframe' display mode in the viewport. This might be confusing sometimes. ▶▶▶ Go to Object Properties → Viewport Display → Display As",
+        default=False
+    )
+#    49 Active Object: Collection Instance
+    warn_info_49: bpy.props.BoolProperty(
+        name="Active Object: Collection Instance",
+        description="The Active Object is a Collection Instance. ▶▶▶ Go to Object Properties → Instancing",
+        default=False
+    )
+#    50 Active Object: Faces/Verts Instance
+    warn_info_50: bpy.props.BoolProperty(
+        name="Active Object: Faces/Verts Instance",
+        description="The Active Object is a Faces/Verts Instance. All children objects will be instanced to it's Verts/Faces. ▶▶▶ Go to Object Properties → Instancing",
+        default=False
+    )
+#    51 Active Object: Solo Active Shape Key
+    warn_info_51: bpy.props.BoolProperty(
+        name="Active Object: Solo Active Shape Key",
+        description="The Active Object has 'Solo Active Shape Key' enabled. This will ONLY show you the selected Shape Key. ▶▶▶ Go to Properties → Mesh → Shape Keys → Disable 'Solo Active Shape Key'",
+        default=False
+    )
+#    52 Active Object: Hidden Geometry due to Shape Key
+    warn_info_52: bpy.props.BoolProperty(
+        name="Active Object: Shape Key Edit Mode",
+        description="The Active Object is in Shape Key Edit Mode. This will show the MIX of all Shape Keys with their current values! Disable to only see current Shape Key! . ▶▶▶ Go to Properties → Mesh → Shape Keys → Disalbe 'Shape Key Edit Mode'",
+        default=False
+    )
+
+
 #    Custom: Custom Text
     warn_info_custom: bpy.props.BoolProperty(
         name="CUSTOM Warning",
@@ -372,6 +404,12 @@ WarnInfoIconMap = {
     44:'BLENDER',
     45:'NODE_COMPOSITING',
     46:'XRAY',
+    47:'TEXTURE',
+    48:'MOD_WIREFRAME',
+    49:'OUTLINER_OB_GROUP_INSTANCE',
+    50:'SNAP_FACE_CENTER',
+    51:'SOLO_ON',
+    52:'EDITMODE_HLT',
 }
 
 def register():

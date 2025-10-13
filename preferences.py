@@ -68,19 +68,7 @@ class HEADSUP_Preferences(bpy.types.AddonPreferences):
         name="Animation: Auto Keying",
         description="Warn me about 'Auto Keying' being active",
         default=True
-    ) 
-
-    # warn_4_a: bpy.props.BoolProperty(
-    #     name="⏺[REC]",
-    #     description="Add a red dot in the corner of the viewport",
-    #     default=True
-    # ) 
-
-    # warn_4_b: bpy.props.BoolProperty(
-    #     name="O",
-    #     description="Don't trigger a full warning, just show red dot and border",
-    #     default=False
-    # )
+    )
 
     warn_4_a: bpy.props.EnumProperty(
         name="",
@@ -421,6 +409,42 @@ class HEADSUP_Preferences(bpy.types.AddonPreferences):
         default=True,
     )  
 
+    warn_47: bpy.props.BoolProperty(
+        name="Active Object: Visible Texture Space",
+        description="Show a warning if the Active Object has 'Texture Space' visible",
+        default=True,
+    )
+
+    warn_48: bpy.props.BoolProperty(
+        name="Active Object: Wireframe Display",
+        description="Show a warning if the Active Object is set to 'Wireframe' or 'Bounds' display mode",
+        default=True,
+    )
+
+    warn_49: bpy.props.BoolProperty(
+        name="Active Object: Collection Instance",
+        description="Show a warning if the Active Object is a Collection Instance",
+        default=True,
+    )
+
+    warn_50: bpy.props.BoolProperty(
+        name="Active Object: Faces/Verts Instance",
+        description="Show a warning if the Active Object is a Faces/Verts Instance",
+        default=True,
+    )
+
+    warn_51: bpy.props.BoolProperty(
+        name="Active Object: Solo Active Shape Key",
+        description="Show a warning if the Active Object has 'Solo Active Shape Key' enabled for Shape Keys",
+        default=True,
+    )
+
+    warn_52: bpy.props.BoolProperty(
+        name="Active Object: Shape Key Edit Mode",
+        description="Show a warning if the Active Object has 'Shape Key Edit Mode' enabled",
+        default=True,
+    )
+
     custom_warn: bpy.props.BoolProperty(
         name="Enable Custom Warnings",
         description="Enable custom warnings, simply use the text editor and write 'Headsup:', followed by your custom HeadsUp Overlay warning",
@@ -599,7 +623,6 @@ class HEADSUP_Preferences(bpy.types.AddonPreferences):
         split = row.split(factor=0.7)
         split.prop(self, "warn_4")  # Animation: Auto Keying
         split.prop(self, "warn_4_a")  
-        #split.prop(self, "warn_4_b")
         grid.prop(self, "warn_31")  # Animation: Preview Range
         grid.prop(self, "warn_22")  # Active Object: Shadow Catcher/Holdout
         grid.prop(self, "warn_28")  # Active Object: Relative Array
@@ -607,6 +630,13 @@ class HEADSUP_Preferences(bpy.types.AddonPreferences):
         grid.prop(self, "warn_34")  # Active Object: Rig in Rest Position
         grid.prop(self, "warn_40")  # Active Object: Render < Viewport SubDiv
         grid.prop(self, "warn_46")  # Active Object: In Front
+        grid.prop(self, "warn_47")  # Active Object: Visible Texture Space
+        grid.prop(self, "warn_48")  # Active Object: Wireframe Display
+        grid.prop(self, "warn_49")  # Active Object: Collection Instance
+        grid.prop(self, "warn_50")  # Active Object: Faces/Verts Instance
+        grid.prop(self, "warn_51")  # Active Object: Solo Active Shape Key
+        grid.prop(self, "warn_52")  # Active Object: Shape Key Edit Mode
+
         grid.prop(self, "warn_42")  # Data: Missing Textures
         grid.prop(self, "warn_43")  # Data: Missing Libraries
         row = grid.row()

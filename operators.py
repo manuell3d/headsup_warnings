@@ -82,10 +82,17 @@ class HEADSUP_OT_Select_Highlight_Collection(bpy.types.Operator):
             self.report({'ERROR'}, f"Collection '{self.collection_name}' not found")
             return {'CANCELLED'}
         
-        # Set the active collection
-        context.view_layer.active_layer_collection = self.find_layer_collection(
+        # Check if Target collection exists in the current view layer
+        target_collection = self.find_layer_collection(
             context.view_layer.layer_collection, self.collection_name
         )
+        if target_collection is None:
+            self.report({'ERROR'}, f"Collection '{self.collection_name}' could not be highlighted")
+            return {'CANCELLED'}
+
+        # Set the active collection
+        
+        context.view_layer.active_layer_collection = target_collection
         
         if context.view_layer.active_layer_collection is None:
             self.report({'ERROR'}, f"Collection '{self.collection_name}' could not be highlighted")
