@@ -502,6 +502,12 @@ class HEADSUP_Preferences(bpy.types.AddonPreferences):
         description="Indicates if this is the first setup for the add-on",
         default=False
     ) 
+    debug_mode: bpy.props.BoolProperty(
+        name="Debug Mode",
+        description="Enables debug mode for troubleshooting",
+        default=True
+    )
+
 
     def draw(self, context):
         layout = self.layout
