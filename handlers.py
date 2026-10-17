@@ -1619,6 +1619,8 @@ def register():
     bpy.app.timers.register(check_startup_time)
 
 def unregister():
+    if bpy.app.timers.is_registered(check_startup_time):
+        bpy.app.timers.unregister(check_startup_time)
     unregister_draw_handler()
     bpy.msgbus.clear_by_owner(subscribe_to_global_visibility_and_exclusion)
     bpy.app.handlers.depsgraph_update_post.remove(headsup_check_warnings)
