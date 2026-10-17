@@ -397,7 +397,11 @@ def check_renderlayer_compositing_conditions():
             if not scene.render.use_compositing or scene.compositing_node_group is None:
                 return []
         
-        node_tree = scene.node_tree
+        node_tree = (
+            scene.compositing_node_group
+            if bpy.app.version >= (5, 0, 0)
+            else scene.node_tree
+        )
         compositor_nodes = node_tree.nodes
         warnings = []
 
