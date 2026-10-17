@@ -520,7 +520,7 @@ def headsup_check_warnings(scene, depsgraph):
         
         # Reset all warn_info properties
         safe_setattr(props, "warn_info_custom", False)
-        for i in range(1, 52):  # Adjust the range as needed
+        for i in range(1, 53):  # Adjust the range as needed
             safe_setattr(props, f"warn_info_{i}", False)
 
         for view_layer in bpy.context.scene.view_layers:
